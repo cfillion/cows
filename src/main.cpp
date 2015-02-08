@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   // Help is welcome.
 
   if(isClient && isServer) {
-    LOG_FATAL(QObject::tr("only one mode may be used at a tme"));
+    LOG_FATAL("only one mode may be used at a tme");
     return -1;
   }
   else if(isClient) {

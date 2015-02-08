@@ -42,5 +42,5 @@ void Client::disconnected()
 
 void Client::failed(const QAbstractSocket::SocketError)
 {
-  LOG_ERROR(tr("system message: %1").arg(m_socket->errorString()));
+  LOG_ERROR(QString("system message: %1").arg(m_socket->errorString()));
 }

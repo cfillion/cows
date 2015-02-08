@@ -32,7 +32,7 @@ Logger::Logger(const QString &logFile)
   if(!logFile.isEmpty()) {
     if(!m_file.open(QIODevice::Append | QIODevice::Text))  {
       log(ERROR, QStringLiteral("logger"),
-        QObject::tr("can not open '%1' for writing: %2")
+        QString("can not open '%1' for writing: %2")
         .arg(logFile, m_file.errorString()));
     }
   }

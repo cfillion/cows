@@ -24,13 +24,13 @@ Peer::Peer(QWebSocket *socket, Server *server)
 
 void Peer::send(const MessageList &messages)
 {
-  LOG_DEBUG(tr("sending %1 messages to %2")
+  LOG_DEBUG(QString("sending %1 messages to %2")
     .arg(messages.count()).arg(m_uuid.toString()));
 
   const QString serializedMessages = Message::serialize(messages);
 
   Q_FOREACH(const Message &message, messages)
-    LOG_DEBUG(tr("outbound message: %1").arg(message.toString()));
+    LOG_DEBUG(QString("outbound message: %1").arg(message.toString()));
 
   m_socket->sendTextMessage(serializedMessages);
 }
@@ -49,14 +49,14 @@ void Peer::messageReceived(const QString &serializedMessages)
 {
   MessageList messages = Message::unserialize(serializedMessages);
 
-  LOG_DEBUG(tr("received %1 messages from %2")
+  LOG_DEBUG(QString("%1 message(s) received from %2")
     .arg(messages.count()).arg(m_uuid.toString()));
 
   Q_FOREACH(const Message &message, messages) {
-    LOG_DEBUG(tr("inbound message: %1").arg(message.toString()));
+    LOG_DEBUG(QString("inbound message: %1").arg(message.toString()));
 
     // TODO: do something with message
   }
 
-  send("hello");
+  send("hello", QStringList() << "how" << "are" << "you?");
 }

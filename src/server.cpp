@@ -29,7 +29,7 @@ bool Server::open(const QString &address)
   QStringList components = address.split(QStringLiteral(":"));
 
   if(components.size() != 2) {
-    LOG_FATAL(tr("invalid address: %1. format must be IP:PORT")
+    LOG_FATAL(QString("invalid address: %1. format must be IP:PORT")
       .arg(address));
 
     return false;
@@ -41,7 +41,7 @@ bool Server::open(const QString &address)
   const QHostAddress host = QHostAddress(hostInput);
 
   if(host.isNull()) {
-    LOG_FATAL(tr("invalid ip: %1").arg(hostInput));
+    LOG_FATAL(QString("invalid ip: %1").arg(hostInput));
     return false;
   }
 
@@ -49,18 +49,18 @@ bool Server::open(const QString &address)
   const int port = portInput.toInt(&portConverted);
 
   if(!portConverted) {
-    LOG_FATAL(tr("invalid port number: %1").arg(portInput));
+    LOG_FATAL(QString("invalid port number: %1").arg(portInput));
     return false;
   }
 
   if(!m_server->listen(host, port)) {
-    LOG_FATAL(tr("can not listening on %1: %2")
+    LOG_FATAL(QString("can not listening on %1: %2")
       .arg(address, m_server->errorString()));
 
     return false;
   }
 
-  LOG_INFO(tr("initialization completed. clients are now accepted on %3")
+  LOG_INFO(QString("initialization completed. clients are now accepted on %3")
     .arg(m_server->serverUrl().toString()));
 
   return true;
