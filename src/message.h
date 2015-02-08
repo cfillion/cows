@@ -14,6 +14,7 @@ public:
 
   Message(const QString &cmd = QString(), const QStringList &args = QStringList());
 
+  bool isValid() const;
   QString serialize() const;
   QString toString() const;
 
@@ -21,6 +22,8 @@ public:
   const QStringList &arguments() const { return m_arguments; }
 
 private:
+  bool containsSeparators(const QString &string) const;
+
   QString m_command;
   QStringList m_arguments;
 };
