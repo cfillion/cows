@@ -3,9 +3,9 @@
 
 #include <QObject>
 
-class QWebSocket;
-
 #include <QAbstractSocket>
+
+class QWebSocket;
 
 class Client : public QObject
 {

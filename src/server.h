@@ -5,6 +5,8 @@
 
 class QWebSocketServer;
 
+class Peer;
+
 class Server : public QObject
 {
   Q_OBJECT
@@ -17,10 +19,11 @@ public Q_SLOTS:
   bool open(const QString &address);
 
 private Q_SLOTS:
-  void connectionOpened();
+  void newPeer();
 
 private:
   QWebSocketServer *m_server;
+  QList<Peer *> m_peers;
 };
 
 #endif

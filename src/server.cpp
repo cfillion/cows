@@ -5,6 +5,7 @@
 #include <QWebSocketServer>
 
 #include "logging.h"
+#include "peer.h"
 
 LOG_MODULE("server");
 
@@ -14,9 +15,7 @@ Server::Server(QObject *parent)
   m_server = new QWebSocketServer(qApp->applicationName(),
     QWebSocketServer::NonSecureMode, this);
 
-  connect(m_server, &QWebSocketServer::newConnection,
-    this, &Server::connectionOpened);
-
+  connect(m_server, &QWebSocketServer::newConnection, this, &Server::newPeer);
   connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
 }
 
@@ -67,7 +66,10 @@ bool Server::open(const QString &address)
   return true;
 }
 
-void Server::connectionOpened()
+void Server::newPeer()
 {
-  LOG_DEBUG("opened");
+  LOG_DEBUG("registering new peer");
+
+  Peer *peer = new Peer(m_server->nextPendingConnection(), this);
+  m_peers << peer;
 }

@@ -13,6 +13,8 @@ CppApplication {
     "src/client.*",
     "src/logger.*",
     "src/main.cpp",
+    "src/message.*",
+    "src/peer.*",
     "src/server.*",
   ]
 
