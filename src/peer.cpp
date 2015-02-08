@@ -12,10 +12,14 @@ Peer::Peer(QWebSocket *socket, Server *server)
 {
   m_uuid = QUuid::createUuid();
 
+  m_address = m_socket->peerAddress();
+  m_port = m_socket->peerPort();
+
   connect(m_socket, &QWebSocket::textMessageReceived,
     this, &Peer::messageReceived);
 
-  LOG_INFO(QString("uuid=%1").arg(m_uuid.toString()));
+  LOG_INFO(QString("address=%1:%2 uuid=%3")
+    .arg(m_address.toString()).arg(m_port).arg(m_uuid.toString()));
 }
 
 void Peer::send(const MessageList &messages)

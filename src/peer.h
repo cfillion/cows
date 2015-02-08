@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+#include <QHostAddress>
 #include <QStringList>
 #include <QUuid>
 
@@ -31,7 +32,10 @@ private Q_SLOTS:
 private:
   QWebSocket *m_socket;
   Server *m_server;
+
   QUuid m_uuid;
+  QHostAddress m_address;
+  int m_port;
 };
 
 #endif
