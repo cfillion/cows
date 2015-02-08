@@ -4,7 +4,7 @@
 #include <QUrl>
 #include <QWebSocketServer>
 
-#include "logger.h"
+#include "logging.h"
 
 LOG_MODULE("server");
 

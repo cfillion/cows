@@ -2,7 +2,7 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 
-#include "logger.h"
+#include "logging.h"
 #include "server.h"
 
 LOG_MODULE("main");

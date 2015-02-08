@@ -4,8 +4,6 @@
 #include <QFile>
 #include <QtGlobal>
 
-LOG_MODULE("logger");
-
 Logger *Logger::s_instance = 0;
 
 void Logger::open(const QString &logFile)
@@ -29,12 +27,11 @@ Logger *Logger::instance()
 Logger::Logger(const QString &logFile)
   : m_file(logFile)
 {
-  // NOTE: the convenience constants LOG_* can't be
-  // used here since s_instance isn't set yet.
+  // The macros LOG_* can't be used here since s_instance isn't set yet.
 
   if(!logFile.isEmpty()) {
     if(!m_file.open(QIODevice::Append | QIODevice::Text))  {
-      log(ERROR, _LOG_MODULE_NAME,
+      log(ERROR, QStringLiteral("logger"),
         QObject::tr("can not open '%1' for writing: %2")
         .arg(logFile, m_file.errorString()));
     }
