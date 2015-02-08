@@ -9,12 +9,14 @@ CppApplication {
   ]
 
   files: [
-    "src/main.cpp",
     "src/logger.*",
+    "src/main.cpp",
+    "src/server.*",
   ]
 
   Depends { name: "Qt"; submodules: [
     "core",
+    "websockets",
   ]}
 
   Group {

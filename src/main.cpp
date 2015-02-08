@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 
 #include "logger.h"
+#include "server.h"
 
 LOG_MODULE("main");
 
@@ -14,16 +15,16 @@ int main(int argc, char *argv[])
   app.setApplicationVersion(QStringLiteral("0.0.1"));
   app.setOrganizationName(QStringLiteral("cfillion"));
 
-  const QCommandLineOption connectMode(
+  const QCommandLineOption connectOption(
     QStringList() << "C" << "connect",
     QObject::tr("open a interactive connection with a server"),
     QObject::tr("URL")
   );
 
-  const QCommandLineOption listenMode(
+  const QCommandLineOption listenOption(
     QStringList() << "S" << "listen",
     QObject::tr("start a server and start listening for connections"),
-    QObject::tr("HOST"), "0.0.0.0:7169"
+    QObject::tr("ADDRESS"), "0.0.0.0:7169"
   );
 
   const QCommandLineOption logFileOption(
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
   parser.addHelpOption();
   parser.addVersionOption();
   parser.addOptions(QList<QCommandLineOption>()
-    << connectMode << listenMode
+    << connectOption << listenOption
     << logFileOption
   );
 
@@ -46,8 +47,8 @@ int main(int argc, char *argv[])
 
   Logger::open(parser.value(logFileOption));
 
-  const bool isClient = parser.isSet(connectMode);
-  const bool isServer = parser.isSet(listenMode);
+  const bool isClient = parser.isSet(connectOption);
+  const bool isServer = parser.isSet(listenOption);
 
   if(isClient && isServer) {
     LOG_FATAL(QObject::tr("only one mode may be used at a tme"));
@@ -58,6 +59,10 @@ int main(int argc, char *argv[])
     return -1;
   }
   else if(isServer) {
+    Server server;
+
+    if(!server.open(parser.value(listenOption)))
+      return -1;
   }
   else
     parser.showHelp();
