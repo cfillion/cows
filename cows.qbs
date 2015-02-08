@@ -10,6 +10,7 @@ CppApplication {
 
   files: [
     "src/main.cpp",
+    "src/logger.*",
   ]
 
   Depends { name: "Qt"; submodules: [
