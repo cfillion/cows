@@ -44,16 +44,18 @@ int main(int argc, char *argv[])
 
   parser.process(app);
 
-  Logger::open(stderr);
+  Logger::open(parser.value(logFileOption));
 
   const bool isClient = parser.isSet(connectMode);
   const bool isServer = parser.isSet(listenMode);
 
   if(isClient && isServer) {
-    LOG_FATAL(QObject::tr("can not act as both a client and a server"));
+    LOG_FATAL(QObject::tr("only one mode may be used at a tme"));
     return -1;
   }
   else if(isClient) {
+    LOG_FATAL(QObject::tr("client mode is not implemented!"));
+    return -1;
   }
   else if(isServer) {
   }

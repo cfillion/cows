@@ -1,14 +1,16 @@
 #include "logger.h"
 
 #include <QDateTime>
-#include <QString>
+#include <QFile>
 #include <QtGlobal>
+
+LOG_MODULE("logger");
 
 Logger *Logger::s_instance = 0;
 
-void Logger::open(FILE *output)
+void Logger::open(const QString &logFile)
 {
-  Logger::open(new Logger(output));
+  Logger::open(new Logger(logFile));
 }
 
 void Logger::open(Logger *replacement)
@@ -24,19 +26,42 @@ Logger *Logger::instance()
   return s_instance;
 }
 
-Logger::Logger(FILE *output)
-  : m_output(output)
+Logger::Logger(const QString &logFile)
+  : m_file(logFile)
 {
+  // NOTE: the convenience constants LOG_* can't be
+  // used here since s_instance isn't set yet.
+
+  if(!logFile.isEmpty()) {
+    if(!m_file.open(QIODevice::Append | QIODevice::Text))  {
+      log(ERROR, _LOG_MODULE_NAME,
+        QObject::tr("can not open '%1' for writing: %2")
+        .arg(logFile, m_file.errorString()));
+    }
+  }
+}
+
+Logger::~Logger()
+{
+  if(m_file.isOpen())
+    m_file.close();
 }
 
 void Logger::log(const Level level,
-  const QString &module, const QString &message) const
+  const QString &module, const QString &message)
 {
   const QDateTime now = QDateTime::currentDateTime();
 
-  fputs(qPrintable(QString("[%1] (%2) %3: %4\n").arg(
+  const char *logLine = qPrintable(QString("[%1] (%2) %3: %4\n").arg(
     now.toString(Qt::RFC2822Date), level2string(level), module, message
-  )), m_output);
+  ));
+
+  fputs(logLine, stderr);
+
+  if(m_file.isOpen()) {
+    m_file.write(logLine);
+    m_file.flush();
+  }
 }
 
 QString Logger::level2string(const Level level) const
