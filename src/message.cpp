@@ -29,8 +29,8 @@ MessageList Message::unserialize(const QString &serializedMessages)
 
   const QStringList splitted = serializedMessages.split(MESSAGE_SEPARATOR);
 
-  Q_FOREACH(const QString &messageParts, splitted) {
-    QStringList parts = messageParts.split(PART_SEPARATOR);
+  Q_FOREACH(const QString &messageContents, splitted) {
+    QStringList parts = messageContents.split(PART_SEPARATOR);
 
     messages << Message(parts.takeFirst(), parts);
   }

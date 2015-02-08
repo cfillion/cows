@@ -10,7 +10,6 @@ CppApplication {
   ]
 
   files: [
-    "src/client.*",
     "src/logger.*",
     "src/main.cpp",
     "src/message.*",
