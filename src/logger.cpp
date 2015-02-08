@@ -49,14 +49,17 @@ void Logger::log(const Level level,
 {
   const QDateTime now = QDateTime::currentDateTime();
 
-  const char *logLine = qPrintable(QString("[%1] (%2) %3: %4\n").arg(
+  const QString logLine = QString("[%1] (%2) %3: %4\n").arg(
     now.toString(Qt::RFC2822Date), level2string(level), module, message
-  ));
+  );
 
-  fputs(logLine, stderr);
+  // The value returned by qPrintable cannot be reused multiple times.
+  // Storing it in a variable causes strange bugs and it might be dangerous.
+
+  fputs(qPrintable(logLine), stderr);
 
   if(m_file.isOpen()) {
-    m_file.write(logLine);
+    m_file.write(qPrintable(logLine));
     m_file.flush();
   }
 }

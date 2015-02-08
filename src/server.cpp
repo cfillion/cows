@@ -9,10 +9,20 @@
 LOG_MODULE("server");
 
 Server::Server(QObject *parent)
-  : QObject(parent), m_server(0)
+  : QObject(parent)
 {
   m_server = new QWebSocketServer(qApp->applicationName(),
     QWebSocketServer::NonSecureMode, this);
+
+  connect(m_server, &QWebSocketServer::newConnection,
+    this, &Server::connectionOpened);
+
+  connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
+}
+
+Server::~Server()
+{
+  m_server->close();
 }
 
 bool Server::open(const QString &address)
@@ -55,4 +65,9 @@ bool Server::open(const QString &address)
     .arg(m_server->serverUrl().toString()));
 
   return true;
+}
+
+void Server::connectionOpened()
+{
+  LOG_DEBUG("opened");
 }

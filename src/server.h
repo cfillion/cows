@@ -11,8 +11,13 @@ class Server : public QObject
 
 public:
   Server(QObject *parent = 0);
+  ~Server();
 
+public Q_SLOTS:
   bool open(const QString &address);
+
+private Q_SLOTS:
+  void connectionOpened();
 
 private:
   QWebSocketServer *m_server;

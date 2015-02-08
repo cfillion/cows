@@ -2,6 +2,7 @@ import qbs 1.0
 
 CppApplication {
   name: "cows"
+  consoleApplication: true
 
   cpp.cxxFlags: [
     "-fcolor-diagnostics",
@@ -9,6 +10,7 @@ CppApplication {
   ]
 
   files: [
+    "src/client.*",
     "src/logger.*",
     "src/main.cpp",
     "src/server.*",

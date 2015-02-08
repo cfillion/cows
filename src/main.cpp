@@ -2,6 +2,7 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 
+#include "client.h"
 #include "logging.h"
 #include "server.h"
 
@@ -50,18 +51,25 @@ int main(int argc, char *argv[])
   const bool isClient = parser.isSet(connectOption);
   const bool isServer = parser.isSet(listenOption);
 
+  // For some reasons that I don't quite understand, both the server and client
+  // aren't listening/connecting if they are allocated on the stack.
+  //
+  // Help is welcome.
+
   if(isClient && isServer) {
     LOG_FATAL(QObject::tr("only one mode may be used at a tme"));
     return -1;
   }
   else if(isClient) {
-    LOG_FATAL(QObject::tr("client mode is not implemented!"));
-    return -1;
+    Client *client = new Client;
+
+    if(!client->open(parser.value(connectOption)))
+      return -1;
   }
   else if(isServer) {
-    Server server;
+    Server *server = new Server;
 
-    if(!server.open(parser.value(listenOption)))
+    if(!server->open(parser.value(listenOption)))
       return -1;
   }
   else
