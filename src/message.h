@@ -24,7 +24,10 @@ public:
   QString toString() const;
 
   const QString &command() const { return m_command; }
+  QString argument(const int index) const { return m_arguments.value(index); }
   const QStringList &arguments() const { return m_arguments; }
+
+  void addArgument(const QString &newArg) { m_arguments << newArg; }
 
   Peer *peer() const { return m_peer; }
   Server *server() const;

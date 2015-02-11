@@ -10,11 +10,15 @@ QStringList Chat::knownCommands() const
   return QStringList() << MSG_COMMAND;
 }
 
-void Chat::processMessage(const Message &message)
+void Chat::processMessage(const Message &command)
 {
-  const Server *server = message.server();
+  const Server *server = command.server();
+
+  Message reply("msg");
+  reply.addArgument(command.peer()->uuid().toString());
+  reply.addArgument(command.argument(0));
 
   Q_FOREACH(Peer *peer, server->peers()) {
-    peer->send("msg", message.arguments());
+    peer->send(reply);
   }
 }
