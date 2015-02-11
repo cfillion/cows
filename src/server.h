@@ -26,6 +26,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
   void createPeer();
+  void destroyPeer();
 
 private:
   void loadModule(Module *module);

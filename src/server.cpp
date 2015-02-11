@@ -76,7 +76,19 @@ void Server::createPeer()
   LOG_DEBUG(QString("registering new peer (%1)").arg(m_peers.count() + 1));
 
   Peer *peer = new Peer(m_server->nextPendingConnection(), this);
+  connect(peer, &Peer::disconnected, this, &Server::destroyPeer);
+
   m_peers << peer;
+}
+
+void Server::destroyPeer()
+{
+  Peer *peer = qobject_cast<Peer *>(sender());
+
+  LOG_INFO(QString("unregistering peer %1").arg(peer->uuid().toString()));
+
+  m_peers.removeAll(peer);
+  peer->deleteLater();
 }
 
 void Server::loadModule(Module *module)

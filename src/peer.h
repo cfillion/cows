@@ -30,6 +30,9 @@ public:
 private Q_SLOTS:
   void messageReceived(const QString &message);
 
+Q_SIGNALS:
+  void disconnected();
+
 private:
   QWebSocket *m_socket;
   Server *m_server;

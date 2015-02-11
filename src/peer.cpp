@@ -18,6 +18,8 @@ Peer::Peer(QWebSocket *socket, Server *server)
 
   connect(m_socket, &QWebSocket::textMessageReceived,
     this, &Peer::messageReceived);
+  connect(m_socket, &QWebSocket::disconnected,
+    this, &Peer::disconnected);
 
   LOG_INFO(QString("address=%1:%2 uuid=%3")
     .arg(m_address.toString()).arg(m_port).arg(m_uuid.toString()));
