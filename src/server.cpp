@@ -4,6 +4,7 @@
 #include <QUrl>
 #include <QWebSocketServer>
 
+#include "chat.h"
 #include "logging.h"
 #include "peer.h"
 
@@ -17,10 +18,14 @@ Server::Server(QObject *parent)
 
   connect(m_server, &QWebSocketServer::newConnection, this, &Server::newPeer);
   connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
+
+  loadModule(new Chat);
 }
 
 Server::~Server()
 {
+  qDeleteAll(m_modules);
+
   m_server->close();
 }
 
@@ -72,4 +77,19 @@ void Server::newPeer()
 
   Peer *peer = new Peer(m_server->nextPendingConnection(), this);
   m_peers << peer;
+}
+
+void Server::loadModule(Module *module)
+{
+  m_modules << module;
+}
+
+Module *Server::commandModule(const QString &command) const
+{
+  Q_FOREACH(Module *module, m_modules) {
+    if(module->knownCommands().contains(command))
+      return module;
+  }
+
+  return 0;
 }

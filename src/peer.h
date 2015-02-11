@@ -25,9 +25,11 @@ public:
   void send(const QString &cmd, const QStringList &args = QStringList());
 
   const QUuid &uuid() const { return m_uuid; }
+  Server *server() const { return m_server; }
 
 private Q_SLOTS:
   void messageReceived(const QString &serializedMessages);
+  void processMessage(const Message &message);
 
 private:
   QWebSocket *m_socket;

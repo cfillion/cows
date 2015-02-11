@@ -1,11 +1,12 @@
 #include "message.h"
 
 #include "logging.h"
+#include "peer.h"
 
 LOG_MODULE("message");
 
-static QChar MESSAGE_SEPARATOR = '\30';
-static QChar PART_SEPARATOR = '\31';
+static QChar MESSAGE_SEPARATOR = '\x1E';
+static QChar PART_SEPARATOR = '\x1F';
 
 QString Message::serialize(const MessageList &messages)
 {
@@ -23,7 +24,7 @@ QString Message::serialize(const MessageList &messages)
   return serializedMessages.join(MESSAGE_SEPARATOR);
 }
 
-MessageList Message::unserialize(const QString &serializedMessages)
+MessageList Message::unserialize(const QString &serializedMessages, Peer *peer)
 {
   MessageList messages;
 
@@ -32,14 +33,14 @@ MessageList Message::unserialize(const QString &serializedMessages)
   Q_FOREACH(const QString &messageContents, splitted) {
     QStringList parts = messageContents.split(PART_SEPARATOR);
 
-    messages << Message(parts.takeFirst(), parts);
+    messages << Message(parts.takeFirst(), parts, peer);
   }
 
   return messages;
 }
 
-Message::Message(const QString &command, const QStringList &arguments)
-  : m_command(command), m_arguments(arguments)
+Message::Message(const QString &cmd, const QStringList &args, Peer *peer)
+  : m_command(cmd), m_arguments(args), m_peer(peer)
 {
 }
 
@@ -75,4 +76,12 @@ QString Message::toString() const
     parts << QString("ARG %1").arg(argument);
 
   return parts.join('\x20');
+}
+
+Server *Message::server() const
+{
+  if(!m_peer)
+    return 0;
+
+  return m_peer->server();
 }

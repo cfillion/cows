@@ -3,6 +3,7 @@
 #include <QWebSocket>
 
 #include "logging.h"
+#include "module.h"
 #include "server.h"
 
 LOG_MODULE("peer");
@@ -47,7 +48,7 @@ void Peer::send(const QString &command, const QStringList &arguments)
 
 void Peer::messageReceived(const QString &serializedMessages)
 {
-  MessageList messages = Message::unserialize(serializedMessages);
+  MessageList messages = Message::unserialize(serializedMessages, this);
 
   LOG_DEBUG(QString("%1 message(s) received from %2")
     .arg(messages.count()).arg(m_uuid.toString()));
@@ -55,8 +56,16 @@ void Peer::messageReceived(const QString &serializedMessages)
   Q_FOREACH(const Message &message, messages) {
     LOG_DEBUG(QString("inbound message: %1").arg(message.toString()));
 
-    // TODO: do something with message
+    processMessage(message);
   }
+}
 
-  send("hello", QStringList() << "how" << "are" << "you?");
+void Peer::processMessage(const Message &message)
+{
+  Module *module = m_server->commandModule(message.command());
+
+  if(module)
+    module->processMessage(message);
+  else
+    send("error", QStringList() << "unknown command");
 }
