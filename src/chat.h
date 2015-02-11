@@ -6,8 +6,8 @@
 class Chat : public Module
 {
 public:
-  QStringList knownCommands() const Q_DECL_OVERRIDE;
-  void processMessage(const Message &command) Q_DECL_OVERRIDE;
+  virtual QStringList knownCommands() const Q_DECL_OVERRIDE;
+  virtual void processCommand(const Command &command) Q_DECL_OVERRIDE;
 };
 
 #endif

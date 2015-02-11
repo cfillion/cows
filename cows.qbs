@@ -11,9 +11,9 @@ CppApplication {
 
   files: [
     "src/chat.*",
+    "src/command.*",
     "src/logger.*",
     "src/main.cpp",
-    "src/message.*",
     "src/module.h",
     "src/peer.*",
     "src/server.*",

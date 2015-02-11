@@ -23,49 +23,38 @@ Peer::Peer(QWebSocket *socket, Server *server)
     .arg(m_address.toString()).arg(m_port).arg(m_uuid.toString()));
 }
 
-void Peer::send(const MessageList &messages)
+void Peer::send(const CommandList &commands)
 {
-  LOG_DEBUG(QString("sending %1 messages to %2")
-    .arg(messages.count()).arg(m_uuid.toString()));
+  LOG_DEBUG(QString("sending %1 command(s) to %2")
+    .arg(commands.count()).arg(m_uuid.toString()));
 
-  const QString serializedMessages = Message::serialize(messages);
+  Q_FOREACH(const Command &command, commands)
+    LOG_DEBUG(QString("outbound command: %1").arg(command.toString()));
 
-  Q_FOREACH(const Message &message, messages)
-    LOG_DEBUG(QString("outbound message: %1").arg(message.toString()));
-
-  m_socket->sendTextMessage(serializedMessages);
+  const QString message = Command::serialize(commands);
+  m_socket->sendTextMessage(message);
 }
 
-void Peer::send(const Message &message)
+void Peer::send(const Command &command)
 {
-  send(MessageList() << message);
+  send(CommandList() << command);
 }
 
-void Peer::send(const QString &command, const QStringList &arguments)
+void Peer::send(const QString &commandName, const QStringList &arguments)
 {
-  send(Message(command, arguments));
+  send(Command(commandName, arguments));
 }
 
-void Peer::messageReceived(const QString &serializedMessages)
+void Peer::messageReceived(const QString &message)
 {
-  MessageList messages = Message::unserialize(serializedMessages, this);
+  CommandList commands = Command::unserialize(message, this);
 
-  LOG_DEBUG(QString("%1 message(s) received from %2")
-    .arg(messages.count()).arg(m_uuid.toString()));
+  LOG_DEBUG(QString("%1 commands(s) received from %2")
+    .arg(commands.count()).arg(m_uuid.toString()));
 
-  Q_FOREACH(const Message &message, messages) {
-    LOG_DEBUG(QString("inbound message: %1").arg(message.toString()));
+  Q_FOREACH(const Command &command, commands) {
+    LOG_DEBUG(QString("inbound command: %1").arg(command.toString()));
 
-    processMessage(message);
+    m_server->execute(command);
   }
-}
-
-void Peer::processMessage(const Message &message)
-{
-  Module *module = m_server->commandModule(message.command());
-
-  if(module)
-    module->processMessage(message);
-  else
-    send("error", QStringList() << "unknown command");
 }

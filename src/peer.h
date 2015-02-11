@@ -7,7 +7,7 @@
 #include <QStringList>
 #include <QUuid>
 
-#include "message.h"
+#include "command.h"
 
 class QWebSocket;
 
@@ -20,16 +20,15 @@ class Peer : public QObject
 public:
   Peer(QWebSocket *socket, Server *server);
 
-  void send(const MessageList &messages);
-  void send(const Message &messages);
-  void send(const QString &cmd, const QStringList &args = QStringList());
+  void send(const CommandList &commands);
+  void send(const Command &commands);
+  void send(const QString &cmdName, const QStringList &args = QStringList());
 
   const QUuid &uuid() const { return m_uuid; }
   Server *server() const { return m_server; }
 
 private Q_SLOTS:
-  void messageReceived(const QString &serializedMessages);
-  void processMessage(const Message &message);
+  void messageReceived(const QString &message);
 
 private:
   QWebSocket *m_socket;

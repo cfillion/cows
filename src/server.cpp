@@ -16,7 +16,7 @@ Server::Server(QObject *parent)
   m_server = new QWebSocketServer(qApp->applicationName(),
     QWebSocketServer::NonSecureMode, this);
 
-  connect(m_server, &QWebSocketServer::newConnection, this, &Server::newPeer);
+  connect(m_server, &QWebSocketServer::newConnection, this, &Server::createPeer);
   connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
 
   loadModule(new Chat);
@@ -71,7 +71,7 @@ bool Server::open(const QString &address)
   return true;
 }
 
-void Server::newPeer()
+void Server::createPeer()
 {
   LOG_DEBUG(QString("registering new peer (%1)").arg(m_peers.count() + 1));
 
@@ -84,7 +84,7 @@ void Server::loadModule(Module *module)
   m_modules << module;
 }
 
-Module *Server::commandModule(const QString &command) const
+Module *Server::moduleForCommand(const QString &command) const
 {
   Q_FOREACH(Module *module, m_modules) {
     if(module->knownCommands().contains(command))
@@ -92,4 +92,14 @@ Module *Server::commandModule(const QString &command) const
   }
 
   return 0;
+}
+
+void Server::execute(const Command &command) const
+{
+  Module *module = moduleForCommand(command.name());
+
+  if(module)
+    module->processCommand(command);
+  else
+    command.reply("error", QStringList() << "unknown command");
 }

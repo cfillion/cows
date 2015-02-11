@@ -3,7 +3,7 @@
 
 #include <QStringList>
 
-class Message;
+class Command;
 class Server;
 
 class Module
@@ -12,7 +12,7 @@ public:
   virtual ~Module() {}
 
   virtual QStringList knownCommands() const = 0;
-  virtual void processMessage(const Message &message) = 0;
+  virtual void processCommand(const Command &command) = 0;
 };
 
 #endif

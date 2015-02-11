@@ -5,6 +5,7 @@
 
 class QWebSocketServer;
 
+class Command;
 class Module;
 class Peer;
 
@@ -16,17 +17,19 @@ public:
   Server(QObject *parent = 0);
   ~Server();
 
-  Module *commandModule(const QString &command) const;
+  void execute(const Command &command) const;
+
   QList<Peer *> peers() const { return m_peers; }
 
 public Q_SLOTS:
   bool open(const QString &address);
 
 private Q_SLOTS:
-  void newPeer();
+  void createPeer();
 
 private:
   void loadModule(Module *module);
+  Module *moduleForCommand(const QString &command) const;
 
   QList<Module *> m_modules;
   QList<Peer *> m_peers;

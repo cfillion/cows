@@ -1,29 +1,28 @@
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#ifndef COMMAND_H
+#define COMMAND_H
 
 #include <QStringList>
 
 class Peer;
 class Server;
 
-class Message;
-typedef QList<Message> MessageList;
+class Command;
+typedef QList<Command> CommandList;
 
-class Message
+class Command
 {
 public:
-  static QString serialize(const MessageList &messages);
-  static MessageList unserialize(const QString &serializedMessages,
-    Peer *peer = 0);
+  static QString serialize(const CommandList &commands);
+  static CommandList unserialize(const QString &text, Peer *peer);
 
-  Message(const QString &cmd, const QStringList &args = QStringList(),
+  Command(const QString &name, const QStringList &args = QStringList(),
     Peer *peer = 0);
 
   bool isValid() const;
   QString serialize() const;
   QString toString() const;
 
-  const QString &command() const { return m_command; }
+  const QString &name() const { return m_name; }
   QString argument(const int index) const { return m_arguments.value(index); }
   const QStringList &arguments() const { return m_arguments; }
 
@@ -32,11 +31,14 @@ public:
   Peer *peer() const { return m_peer; }
   Server *server() const;
 
-private:
-  bool containsSeparators(const QString &string) const;
+  void reply(const QString &command, const QStringList &args = QStringList()) const;
 
-  QString m_command;
+private:
+  bool containsSeparators(const QString &text) const;
+
+  QString m_name;
   QStringList m_arguments;
+
   Peer *m_peer;
 };
 
