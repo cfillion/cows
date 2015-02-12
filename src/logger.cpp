@@ -6,9 +6,9 @@
 
 Logger *Logger::s_instance = 0;
 
-void Logger::open(const QString &logFile)
+void Logger::open(const QString &logFile, const Level logLevel)
 {
-  Logger::open(new Logger(logFile));
+  Logger::open(new Logger(logFile, logLevel));
 }
 
 void Logger::open(Logger *replacement)
@@ -24,8 +24,8 @@ Logger *Logger::instance()
   return s_instance;
 }
 
-Logger::Logger(const QString &logFile)
-  : m_file(logFile)
+Logger::Logger(const QString &logFile, const Level logLevel)
+  : m_file(logFile), m_level(logLevel)
 {
   // The macros LOG_* can't be used here since s_instance isn't set yet.
 
@@ -47,6 +47,9 @@ Logger::~Logger()
 void Logger::log(const Level level,
   const QString &module, const QString &message)
 {
+  if(level < m_level)
+    return;
+
   const QDateTime now = QDateTime::currentDateTime();
 
   const QString logLine = QString("[%1] (%2) %3: %4\n").arg(

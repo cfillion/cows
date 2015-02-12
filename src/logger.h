@@ -7,11 +7,6 @@
 class Logger
 {
 public:
-  static void open(const QString &logFile = QString());
-  static void open(Logger *replacement);
-
-  static Logger *instance();
-
   enum Level
   {
     DEBUG,
@@ -21,7 +16,13 @@ public:
     FATAL,
   };
 
-  Logger(const QString &logFile);
+  static void open(const QString &logFile = QString(),
+    const Level logLevel = Level::INFO);
+  static void open(Logger *replacement);
+
+  static Logger *instance();
+
+  Logger(const QString &logFile, const Level logLevel);
   ~Logger();
 
   void log(const Level level,
@@ -33,6 +34,7 @@ private:
   static Logger *s_instance;
 
   QFile m_file;
+  int m_level;
 };
 
 #endif
