@@ -73,7 +73,7 @@ bool Server::open(const QString &address)
 
 void Server::createPeer()
 {
-  LOG_DEBUG(QString("registering new peer (%1)").arg(m_peers.count() + 1));
+  LOG_INFO(QString("registering new peer (%1)").arg(m_peers.count() + 1));
 
   Peer *peer = new Peer(m_server->nextPendingConnection(), this);
   connect(peer, &Peer::disconnected, this, &Server::destroyPeer);
