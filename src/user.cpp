@@ -1,17 +1,10 @@
-#include "chat.h"
+#include "user.h"
 
+#include "command.h"
 #include "peer.h"
 #include "server.h"
 
-const QString MSG_COMMAND = QStringLiteral("msg");
-const QString ACTION_COMMAND = QStringLiteral("action");
-
-QStringList Chat::knownCommands() const
-{
-  return QStringList() << MSG_COMMAND << ACTION_COMMAND;
-}
-
-void Chat::processCommand(const Command &command)
+void User::sendMessage(const Command &command)
 {
   const Server *server = command.server();
 

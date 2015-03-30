@@ -7,17 +7,20 @@ CppApplication {
   cpp.cxxFlags: [
     "-fcolor-diagnostics",
     "-std=c++11",
+    "-stdlib=libc++",
   ]
 
+  cpp.minimumOsxVersion: "10.7"
+
   files: [
-    "src/chat.*",
     "src/command.*",
     "src/logger.*",
     "src/main.cpp",
-    "src/module.h",
+    "src/names.*",
     "src/peer.*",
     "src/room.*",
     "src/server.*",
+    "src/user.*",
   ]
 
   Depends { name: "Qt"; submodules: [

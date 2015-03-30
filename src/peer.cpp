@@ -3,7 +3,6 @@
 #include <QWebSocket>
 
 #include "logging.h"
-#include "module.h"
 #include "room.h"
 #include "server.h"
 

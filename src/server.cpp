@@ -4,8 +4,8 @@
 #include <QUrl>
 #include <QWebSocketServer>
 
-#include "chat.h"
 #include "logging.h"
+#include "names.h"
 #include "peer.h"
 
 LOG_MODULE("server");
@@ -18,14 +18,10 @@ Server::Server(QObject *parent)
 
   connect(m_server, &QWebSocketServer::newConnection, this, &Server::createPeer);
   connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
-
-  loadModule(new Chat);
 }
 
 Server::~Server()
 {
-  qDeleteAll(m_modules);
-
   m_server->close();
 }
 
@@ -91,27 +87,14 @@ void Server::destroyPeer()
   peer->deleteLater();
 }
 
-void Server::loadModule(Module *module)
-{
-  m_modules << module;
-}
-
-Module *Server::moduleForCommand(const QString &command) const
-{
-  Q_FOREACH(Module *module, m_modules) {
-    if(module->knownCommands().contains(command))
-      return module;
-  }
-
-  return 0;
-}
-
 void Server::execute(const Command &command) const
 {
-  Module *module = moduleForCommand(command.name());
+  const QString name = command.name();
 
-  if(module)
-    module->processCommand(command);
-  else
+  if(Cows::CALLBACKS.count(name) == 0) {
     command.reply("error", QStringList() << "unknown command");
+    return;
+  }
+
+  Cows::CALLBACKS[name](command);
 }

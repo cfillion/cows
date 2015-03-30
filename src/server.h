@@ -6,7 +6,6 @@
 class QWebSocketServer;
 
 class Command;
-class Module;
 class Peer;
 
 class Server : public QObject
@@ -29,10 +28,6 @@ private Q_SLOTS:
   void destroyPeer();
 
 private:
-  void loadModule(Module *module);
-  Module *moduleForCommand(const QString &command) const;
-
-  QList<Module *> m_modules;
   QList<Peer *> m_peers;
   QWebSocketServer *m_server;
 };
