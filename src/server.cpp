@@ -92,7 +92,7 @@ void Server::execute(const Command &command) const
   const QString name = command.name();
 
   if(Cows::CALLBACKS.count(name) == 0) {
-    command.reply("error", QStringList() << "unknown command");
+    command.reply(Cows::COMMAND_NOT_FOUND);
     return;
   }
 

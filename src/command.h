@@ -3,6 +3,8 @@
 
 #include <QStringList>
 
+#include "errors.h"
+
 class Peer;
 class Server;
 
@@ -32,6 +34,7 @@ public:
   Server *server() const;
 
   void reply(const QString &command, const QStringList &args = QStringList()) const;
+  void reply(int errorCode) const;
 
 private:
   bool containsSeparators(const QString &text) const;
