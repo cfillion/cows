@@ -16,6 +16,7 @@ CppApplication {
     "src/main.cpp",
     "src/module.h",
     "src/peer.*",
+    "src/room.*",
     "src/server.*",
   ]
 
