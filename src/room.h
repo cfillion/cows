@@ -19,6 +19,7 @@ public:
   Room(const QString &name, QObject *parent = 0);
 
   const QString &name() const { return m_name; }
+  const QList<Peer *> &peers() const { return m_peers; }
 
 private:
   QString m_name;

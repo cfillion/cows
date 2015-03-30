@@ -7,6 +7,7 @@ namespace Cows
   {
     NO_ERROR,
     COMMAND_NOT_FOUND,
+    PEER_NOT_FOUND,
   };
 };
 #endif

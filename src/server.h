@@ -19,6 +19,7 @@ public:
   void execute(const Command &command) const;
 
   QList<Peer *> peers() const { return m_peers; }
+  QList<Peer *> findPeers(const QString &search) const;
 
 public Q_SLOTS:
   bool open(const QString &address);

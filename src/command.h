@@ -29,6 +29,8 @@ public:
   const QStringList &arguments() const { return m_arguments; }
 
   void addArgument(const QString &newArg) { m_arguments << newArg; }
+  void setArgument(const int index, const QString &newValue)
+    { m_arguments[index] = newValue; }
 
   Peer *peer() const { return m_peer; }
   Server *server() const;

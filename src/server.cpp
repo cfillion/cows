@@ -98,3 +98,17 @@ void Server::execute(const Command &command) const
 
   Cows::CALLBACKS[name](command);
 }
+
+QList<Peer *> Server::findPeers(const QString &search) const
+{
+  QList<Peer *> matches;
+
+  const QUuid uuid(search);
+
+  Q_FOREACH(Peer *peer, m_peers) {
+    if(peer->uuid() == uuid)
+      matches << peer;
+  }
+
+  return matches;
+}
