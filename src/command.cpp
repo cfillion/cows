@@ -8,8 +8,6 @@ LOG_MODULE("command");
 static QChar COMMAND_SEPARATOR = '\x1E';
 static QChar PART_SEPARATOR = '\x1F';
 
-static QString ERROR_CMD = QStringLiteral("error");
-
 QString Command::serialize(const CommandList &commands)
 {
   QStringList textParts;
@@ -98,5 +96,6 @@ void Command::reply(const QString &command, const QStringList &args) const
 
 void Command::reply(int errorCode) const
 {
-  reply(ERROR_CMD, QStringList() << QString::number(errorCode));
+  reply(QStringLiteral("error"),
+    QStringList() << QString::number(errorCode));
 }

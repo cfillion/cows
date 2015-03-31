@@ -28,8 +28,6 @@ public:
   const QUuid &uuid() const { return m_uuid; }
   Server *server() const { return m_server; }
 
-  Room *findRoom(const QString &name);
-
 private Q_SLOTS:
   void messageReceived(const QString &message);
 
@@ -43,8 +41,6 @@ private:
   QUuid m_uuid;
   QHostAddress m_address;
   int m_port;
-
-  QList<Room *> m_rooms;
 };
 
 #endif

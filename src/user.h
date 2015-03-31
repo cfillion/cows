@@ -5,7 +5,8 @@ class Command;
 
 namespace User
 {
-  void sendMessage(const Command &command);
+  void send(const Command &command);
+  void join(const Command &command);
 };
 
 #endif

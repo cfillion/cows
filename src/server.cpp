@@ -7,6 +7,7 @@
 #include "logging.h"
 #include "names.h"
 #include "peer.h"
+#include "room.h"
 
 LOG_MODULE("server");
 
@@ -18,6 +19,8 @@ Server::Server(QObject *parent)
 
   connect(m_server, &QWebSocketServer::newConnection, this, &Server::createPeer);
   connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
+
+  m_rooms["#hello_world"] = new Room("#hello_world", this);
 }
 
 Server::~Server()
@@ -111,4 +114,9 @@ QList<Peer *> Server::findPeers(const QString &search) const
   }
 
   return matches;
+}
+
+Room *Server::findRoom(const QString &name) const
+{
+  return m_rooms.value(name);
 }

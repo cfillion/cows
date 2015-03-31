@@ -5,12 +5,10 @@
 #include "server.h"
 #include "room.h"
 
-void User::sendMessage(const Command &command)
+void User::send(const Command &command)
 {
   const QString roomName = command.argument(0);
   const QString message = command.argument(1);
-
-  QList<Peer *> recipients;
 
   Command broadcast(command.name());
   broadcast.addArgument(roomName);
@@ -19,7 +17,7 @@ void User::sendMessage(const Command &command)
 
   switch(Room::typeOf(roomName)) {
   case Room::Private: {
-    recipients << command.server()->findPeers(roomName);
+    QList<Peer *> recipients = command.server()->findPeers(roomName);
     recipients.removeOne(command.peer());
 
     if(recipients.isEmpty())
@@ -30,12 +28,37 @@ void User::sendMessage(const Command &command)
 
     // set the author's nick as the room name sent to the recipients
     broadcast.setArgument(0, broadcast.argument(1));
+
+    Q_FOREACH(Peer *peer, recipients)
+      peer->send(broadcast);
+
     break;
   }
   case Room::Public:
+    Room *room = command.server()->findRoom(roomName);
+
+    if(!room || !room->hasPeer(command.peer()))
+      return command.reply(Cows::FOREIGN_ROOM);
+
+    const int sendError = room->broadcast(broadcast);
+
+    if(sendError != Cows::OK)
+      command.reply(sendError);
+
     break;
   }
+}
 
-  Q_FOREACH(Peer *peer, recipients)
-    peer->send(broadcast);
+void User::join(const Command &command)
+{
+  const QString roomName = command.argument(0);
+  Room *room = command.server()->findRoom(roomName);
+
+  if(!room)
+    return command.reply(Cows::ROOM_NOT_FOUND);
+
+  const int joinStatus = room->addPeer(command.peer());
+
+  if(joinStatus != Cows::OK)
+    command.reply(joinStatus);
 }

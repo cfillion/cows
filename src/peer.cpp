@@ -60,13 +60,3 @@ void Peer::messageReceived(const QString &message)
     m_server->execute(command);
   }
 }
-
-Room *Peer::findRoom(const QString &name)
-{
-  Q_FOREACH(Room *room, m_rooms) {
-    if(room->name() == name)
-      return room;
-  }
-
-  return 0;
-}

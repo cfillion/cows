@@ -3,10 +3,13 @@
 
 #include <QObject>
 
+class Command;
 class Peer;
 
 class Room : public QObject
 {
+  Q_OBJECT
+
 public:
   enum Type
   {
@@ -20,6 +23,15 @@ public:
 
   const QString &name() const { return m_name; }
   const QList<Peer *> &peers() const { return m_peers; }
+
+  bool hasPeer(Peer *peer) const;
+  int addPeer(Peer *peer);
+  int removePeer(Peer *peer);
+
+  int broadcast(const Command &command);
+
+private Q_SLOTS:
+  void peerDisconnected();
 
 private:
   QString m_name;
