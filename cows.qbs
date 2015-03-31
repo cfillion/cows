@@ -7,8 +7,12 @@ CppApplication {
   cpp.cxxFlags: [
     "-fcolor-diagnostics",
     "-std=c++11",
-    "-stdlib=libc++",
   ]
+
+  Properties {
+    condition: qbs.targetOS.contains("osx")
+    cpp.cxxFlags: outer.concat("-stdlib=libc++")
+  }
 
   cpp.minimumOsxVersion: "10.7"
 
