@@ -3,6 +3,8 @@
 #include "errors.h"
 #include "peer.h"
 
+static const int BACKLOG_SIZE = 50;
+
 Room::Type Room::typeOf(const QString &name)
 {
   const QChar prefix = name[0];
@@ -30,6 +32,8 @@ int Room::addPeer(Peer *peer)
 
   connect(peer, &Peer::disconnected, this, &Room::peerDisconnected);
 
+  peer->send(m_backlog);
+
   m_peers << peer;
   return Cows::OK;
 }
@@ -49,6 +53,11 @@ void Room::peerDisconnected()
 
 int Room::broadcast(const Command &command)
 {
+  m_backlog << command;
+
+  if(m_backlog.size() > BACKLOG_SIZE)
+    m_backlog.removeFirst();
+
   Q_FOREACH(Peer *peer, m_peers)
     peer->send(command);
 

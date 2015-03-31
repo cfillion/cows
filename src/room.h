@@ -3,7 +3,8 @@
 
 #include <QObject>
 
-class Command;
+#include "command.h"
+
 class Peer;
 
 class Room : public QObject
@@ -36,6 +37,7 @@ private Q_SLOTS:
 private:
   QString m_name;
   QList<Peer *> m_peers;
+  QList<Command> m_backlog;
 };
 
 #endif
