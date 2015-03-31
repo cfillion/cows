@@ -4,7 +4,7 @@
 #include "logger.h"
 
 #define LOG_MODULE(name) \
-  static QString _LOG_MODULE_NAME = QStringLiteral(name);
+  static const QString _LOG_MODULE_NAME = QStringLiteral(name);
 
 #define LOG_HERE(level, message) \
   Logger::instance()->log(level, _LOG_MODULE_NAME, message);

@@ -5,8 +5,8 @@
 
 LOG_MODULE("command");
 
-static QChar COMMAND_SEPARATOR = '\x1E';
-static QChar PART_SEPARATOR = '\x1F';
+static const QChar COMMAND_SEPARATOR = '\x1E';
+static const QChar PART_SEPARATOR = '\x1F';
 
 QString Command::serialize(const CommandList &commands)
 {
