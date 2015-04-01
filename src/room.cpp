@@ -1,7 +1,10 @@
 #include "room.h"
 
 #include "errors.h"
+#include "logging.h"
 #include "peer.h"
+
+LOG_MODULE("room")
 
 static const int BACKLOG_SIZE = 255;
 
@@ -18,6 +21,12 @@ Room::Type Room::typeOf(const QString &name)
 Room::Room(const QString &name, QObject *parent)
   : QObject(parent), m_name(name)
 {
+  LOG_DEBUG(QString("constructed room %1").arg(m_name));
+}
+
+Room::~Room()
+{
+  LOG_DEBUG(QString("destroyed room %1").arg(m_name));
 }
 
 bool Room::hasPeer(Peer *peer) const
@@ -30,6 +39,8 @@ int Room::addPeer(Peer *peer)
   if(hasPeer(peer))
     return Cows::ALREADY_JOINED;
 
+  LOG_INFO(QString("peer %1 joined %2").arg(peer->uuid().toString(), m_name));
+
   connect(peer, &Peer::disconnected, this, &Room::peerDisconnected);
 
   peer->send(m_backlog);
@@ -40,6 +51,8 @@ int Room::addPeer(Peer *peer)
 
 int Room::removePeer(Peer *peer)
 {
+  LOG_INFO(QString("peer %1 quitted %2").arg(peer->uuid().toString(), m_name));
+
   peer->disconnect(this);
   m_peers.removeOne(peer);
 
