@@ -10,8 +10,7 @@ void User::send(const Command &command)
   const QString roomName = command.argument(0);
   const QString message = command.argument(1);
 
-  Command broadcast(command.name());
-  broadcast.addArgument(roomName);
+  Command broadcast(command.name(), roomName);
   broadcast.addArgument(command.peer()->uuid().toString());
   broadcast.addArgument(message);
 
@@ -27,7 +26,7 @@ void User::send(const Command &command)
     command.peer()->send(broadcast);
 
     // set the author's nick as the room name sent to the recipients
-    broadcast.setArgument(0, broadcast.argument(1));
+    broadcast.setRoomName(broadcast.argument(0));
 
     Q_FOREACH(Peer *peer, recipients)
       peer->send(broadcast);

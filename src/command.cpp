@@ -33,14 +33,15 @@ CommandList Command::unserialize(const QString &text, Peer *peer)
   Q_FOREACH(const QString &commandText, splitted) {
     QStringList parts = commandText.split(PART_SEPARATOR);
 
-    commands << Command(parts.takeFirst(), parts, peer);
+    commands << Command(parts.takeFirst(), parts.takeFirst(), parts, peer);
   }
 
   return commands;
 }
 
-Command::Command(const QString &name, const QStringList &args, Peer *peer)
-  : m_name(name), m_arguments(args), m_peer(peer)
+Command::Command(const QString &name, const QString &roomName,
+  const QStringList &args, Peer *peer)
+  : m_name(name), m_roomName(roomName), m_arguments(args), m_peer(peer)
 {
 }
 
@@ -64,13 +65,17 @@ bool Command::isValid() const
 
 QString Command::serialize() const
 {
-  const QStringList parts = QStringList() << m_name << m_arguments;
+  const QStringList parts = QStringList()
+    << m_name << m_roomName << m_arguments;
+
   return parts.join(PART_SEPARATOR);
 }
 
 QString Command::toString() const
 {
-  QStringList parts = QStringList() << QString("CMD %1").arg(m_name);
+  QStringList parts = QStringList()
+    << QString("CMD %1").arg(m_name)
+    << QString("IN %1").arg(m_roomName);
 
   Q_FOREACH(const QString &argument, m_arguments)
     parts << QString("ARG %1").arg(argument);
@@ -91,10 +96,10 @@ void Command::reply(const QString &command, const QStringList &args) const
   if(!m_peer)
     return LOG_ERROR("cannot reply to an unbound command");
 
-  m_peer->send(command, args);
+  m_peer->send(command, m_roomName, args);
 }
 
-void Command::reply(int errorCode) const
+void Command::reply(const int errorCode) const
 {
   reply(QStringLiteral("error"),
     QStringList() << QString::number(errorCode));

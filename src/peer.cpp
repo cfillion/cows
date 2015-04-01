@@ -45,9 +45,10 @@ void Peer::send(const Command &command)
   send(CommandList() << command);
 }
 
-void Peer::send(const QString &commandName, const QStringList &arguments)
+void Peer::send(const QString &commandName, const QString &roomName,
+  const QStringList &arguments)
 {
-  send(Command(commandName, arguments));
+  send(Command(commandName, roomName, arguments));
 }
 
 void Peer::messageReceived(const QString &message)

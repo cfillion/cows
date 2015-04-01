@@ -23,7 +23,8 @@ public:
 
   void send(const CommandList &commands);
   void send(const Command &commands);
-  void send(const QString &cmdName, const QStringList &args = QStringList());
+  void send(const QString &cmdName, const QString &roomName,
+    const QStringList &args = QStringList());
 
   const QUuid &uuid() const { return m_uuid; }
   Server *server() const { return m_server; }
