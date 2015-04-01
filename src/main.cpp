@@ -8,7 +8,7 @@
 
 LOG_MODULE("main");
 
-bool setupLogging(const QString &logFile, const QString &logLevelName)
+bool setupLogging(const QString &logFile, QString logLevelName)
 {
   QMap<QString, Logger::Level> logLevels;
   logLevels["debug"] = Logger::DEBUG;
@@ -17,7 +17,9 @@ bool setupLogging(const QString &logFile, const QString &logLevelName)
   logLevels["error"] = Logger::ERROR;
   logLevels["fatal"] = Logger::FATAL;
 
-  if(!logLevels.keys().contains(logLevelName.toLower())) {
+  logLevelName = logLevelName.toLower();
+
+  if(!logLevels.keys().contains(logLevelName)) {
     Logger::open(logFile, Logger::FATAL);
 
     LOG_FATAL(QString("invalid log level: %1").arg(logLevelName));
