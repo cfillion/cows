@@ -3,7 +3,7 @@
 #include "errors.h"
 #include "peer.h"
 
-static const int BACKLOG_SIZE = 50;
+static const int BACKLOG_SIZE = 255;
 
 Room::Type Room::typeOf(const QString &name)
 {
