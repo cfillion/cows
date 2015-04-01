@@ -27,6 +27,9 @@ Peer::Peer(QWebSocket *socket, Server *server)
 
 void Peer::send(const CommandList &commands)
 {
+  if(commands.isEmpty())
+    return;
+
   LOG_DEBUG(QString("sending %1 command(s) to %2")
     .arg(commands.count()).arg(m_uuid.toString()));
 
