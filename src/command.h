@@ -26,9 +26,11 @@ public:
 
   const QString &name() const { return m_name; }
   const QString &roomName() const { return m_roomName; }
+  const QString &key() const { return m_key; }
   QString argument(const int index) const { return m_arguments.value(index); }
   const QStringList &arguments() const { return m_arguments; }
 
+  void setKey(const QString &newKey) { m_key = newKey; }
   void setRoomName(const QString &newRoom) { m_roomName = newRoom; }
   void addArgument(const QString &newArg) { m_arguments << newArg; }
   void setArgument(const int index, const QString &newValue)
@@ -45,6 +47,7 @@ private:
   bool containsSeparators(const QString &text) const;
 
   QString m_name;
+  QString m_key;
   QString m_roomName;
   QStringList m_arguments;
 
