@@ -8,6 +8,10 @@ LOG_MODULE("command");
 static const QChar COMMAND_SEPARATOR = '\x1E';
 static const QChar PART_SEPARATOR = '\x1F';
 
+static const int MAX_LENGTH = 64; // applied to the command name, room and key
+static const int MAX_ARG_COUNT = 4;
+static const int MAX_ARG_LENGTH = 10000;
+
 QString Command::serialize(const CommandList &commands)
 {
   QStringList textParts;
@@ -40,7 +44,10 @@ CommandList Command::unserialize(const QString &text, Peer *peer)
     Command command(name, room, parts, peer);
     command.setKey(key);
 
-    commands << command;
+    if(command.isValid())
+      commands << command;
+    else
+      LOG_WARNING("tried to read an invalid command");
   }
 
   return commands;
@@ -59,11 +66,19 @@ bool Command::containsSeparators(const QString &input) const
 
 bool Command::isValid() const
 {
-  if(containsSeparators(m_name))
+  if(m_name.length() > MAX_LENGTH || m_key.length() > MAX_LENGTH
+    || m_key.length() > MAX_LENGTH)
+    return false;
+
+  if(containsSeparators(m_name) || containsSeparators(m_key)
+    || containsSeparators(m_roomName))
+    return false;
+
+  if(m_arguments.size() > MAX_ARG_COUNT)
     return false;
 
   Q_FOREACH(const QString &argument, m_arguments) {
-    if(containsSeparators(argument))
+    if(argument.length() > MAX_ARG_LENGTH || containsSeparators(argument))
       return false;
   }
 
