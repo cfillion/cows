@@ -21,6 +21,7 @@ Server::Server(QObject *parent)
   connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
 
   m_rooms["#hello_world"] = new Room("#hello_world", this);
+  m_rooms["#42"] = new Room("#42", this);
 }
 
 Server::~Server()

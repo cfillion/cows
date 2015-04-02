@@ -64,3 +64,14 @@ void User::join(const Command &command)
   if(joinStatus != Cows::OK)
     command.reply(joinStatus);
 }
+
+void User::part(const Command &command)
+{
+  const QString roomName = command.argument(0);
+  Room *room = command.server()->findRoom(roomName);
+
+  if(!room || !room->hasPeer(command.peer()))
+    return command.reply(Cows::FOREIGN_ROOM);
+
+  room->removePeer(command.peer());
+}

@@ -8,6 +8,7 @@ Cows::NameList Cows::CALLBACKS = {
   COMMAND("msg", User::send)
   COMMAND("action", User::send)
   COMMAND("join", User::join)
+  COMMAND("part", User::part)
 };
 
 #undef COMMAND

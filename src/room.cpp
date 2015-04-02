@@ -49,12 +49,21 @@ int Room::addPeer(Peer *peer)
   peer->send(m_backlog);
 
   m_peers << peer;
+
+  Command announcement(QStringLiteral("join"), m_name);
+  announcement.addArgument(peer->uuid().toString());
+  broadcast(announcement);
+
   return Cows::OK;
 }
 
 int Room::removePeer(Peer *peer)
 {
-  LOG_INFO(QString("peer %1 quitted %2").arg(peer->uuid().toString(), m_name));
+  LOG_INFO(QString("peer %1 left %2").arg(peer->uuid().toString(), m_name));
+
+  Command announcement(QStringLiteral("part"), m_name);
+  announcement.addArgument(peer->uuid().toString());
+  broadcast(announcement);
 
   peer->disconnect(this);
   m_peers.removeOne(peer);
