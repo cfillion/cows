@@ -15,6 +15,9 @@ void User::send(const Command &command)
   broadcast.addArgument(message);
 
   switch(Room::typeOf(roomName)) {
+  case Room::Invalid:
+    command.reply(Cows::INVALID_ROOM);
+    break;
   case Room::Private: {
     QList<Peer *> recipients = command.server()->findPeers(roomName);
     recipients.removeOne(command.peer());

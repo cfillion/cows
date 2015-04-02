@@ -10,12 +10,15 @@ static const int BACKLOG_SIZE = 255;
 
 Room::Type Room::typeOf(const QString &name)
 {
+  if(name.isEmpty())
+    return Invalid;
+
   const QChar prefix = name[0];
 
   if(prefix == '#')
-    return Room::Public;
+    return Public;
 
-  return Room::Private;
+  return Private;
 }
 
 Room::Room(const QString &name, QObject *parent)

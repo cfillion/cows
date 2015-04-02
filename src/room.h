@@ -14,6 +14,7 @@ class Room : public QObject
 public:
   enum Type
   {
+    Invalid,
     Public,
     Private,
   };

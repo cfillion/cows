@@ -11,6 +11,7 @@ namespace Cows
     ROOM_NOT_FOUND,
     FOREIGN_ROOM,
     ALREADY_JOINED,
+    INVALID_ROOM,
   };
 };
 #endif
