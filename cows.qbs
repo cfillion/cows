@@ -2,6 +2,7 @@ import qbs 1.0
 
 CppApplication {
   name: "cows"
+  type: "application"
   consoleApplication: true
 
   cpp.cxxFlags: [
