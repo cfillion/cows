@@ -95,12 +95,12 @@ void Server::execute(const Command &command) const
 {
   const QString name = command.name();
 
-  if(Cows::CALLBACKS.count(name) == 0) {
-    command.reply(Cows::COMMAND_NOT_FOUND);
+  if(Names::COMMANDS.count(name) == 0) {
+    command.reply(Errno::COMMAND_NOT_FOUND);
     return;
   }
 
-  Cows::CALLBACKS[name](command);
+  Names::COMMANDS[name](command);
 }
 
 QList<Peer *> Server::findPeers(const QString &search) const

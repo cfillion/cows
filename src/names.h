@@ -6,12 +6,12 @@
 
 class Command;
 
-namespace Cows
+namespace Names
 {
   typedef void (*Callback)(const Command &);
   typedef std::map<QString, Callback> NameList;
 
-  extern NameList CALLBACKS;
+  extern NameList COMMANDS;
 };
 
 #endif

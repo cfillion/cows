@@ -2,6 +2,7 @@
 
 #include <QWebSocket>
 
+#include "errors.h"
 #include "logging.h"
 #include "room.h"
 #include "server.h"

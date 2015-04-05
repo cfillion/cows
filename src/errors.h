@@ -1,7 +1,7 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-namespace Cows
+namespace Errno
 {
   enum ERRNO
   {

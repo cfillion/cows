@@ -4,7 +4,7 @@
 
 #define COMMAND(n, c) {QStringLiteral(n), c},
 
-Cows::NameList Cows::CALLBACKS = {
+Names::NameList Names::COMMANDS = {
   COMMAND("msg", User::send)
   COMMAND("action", User::send)
   COMMAND("join", User::join)

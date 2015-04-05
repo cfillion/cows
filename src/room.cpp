@@ -40,7 +40,7 @@ bool Room::hasPeer(Peer *peer) const
 int Room::addPeer(Peer *peer)
 {
   if(hasPeer(peer))
-    return Cows::ALREADY_JOINED;
+    return Errno::ALREADY_JOINED;
 
   LOG_INFO(QString("peer %1 joined %2").arg(peer->uuid().toString(), m_name));
 
@@ -54,7 +54,7 @@ int Room::addPeer(Peer *peer)
   announcement.addArgument(peer->uuid().toString());
   broadcast(announcement);
 
-  return Cows::OK;
+  return Errno::OK;
 }
 
 int Room::removePeer(Peer *peer)
@@ -68,7 +68,7 @@ int Room::removePeer(Peer *peer)
   peer->disconnect(this);
   m_peers.removeOne(peer);
 
-  return Cows::OK;
+  return Errno::OK;
 }
 
 void Room::peerDisconnected()
@@ -86,5 +86,5 @@ int Room::broadcast(const Command &command)
   Q_FOREACH(Peer *peer, m_peers)
     peer->send(command);
 
-  return Cows::OK;
+  return Errno::OK;
 }

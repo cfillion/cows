@@ -16,14 +16,14 @@ void User::send(const Command &command)
 
   switch(Room::typeOf(roomName)) {
   case Room::Invalid:
-    command.reply(Cows::INVALID_ROOM);
+    command.reply(Errno::INVALID_ROOM);
     break;
   case Room::Private: {
     QList<Peer *> recipients = command.server()->findPeers(roomName);
     recipients.removeOne(command.peer());
 
     if(recipients.isEmpty())
-      return command.reply(Cows::PEER_NOT_FOUND);
+      return command.reply(Errno::PEER_NOT_FOUND);
 
     // send the unmodified command to the message's author
     command.peer()->send(broadcast);
@@ -40,11 +40,11 @@ void User::send(const Command &command)
     Room *room = command.server()->findRoom(roomName);
 
     if(!room || !room->hasPeer(command.peer()))
-      return command.reply(Cows::FOREIGN_ROOM);
+      return command.reply(Errno::FOREIGN_ROOM);
 
     const int sendError = room->broadcast(broadcast);
 
-    if(sendError != Cows::OK)
+    if(sendError != Errno::OK)
       command.reply(sendError);
 
     break;
@@ -57,11 +57,11 @@ void User::join(const Command &command)
   Room *room = command.server()->findRoom(roomName);
 
   if(!room)
-    return command.reply(Cows::ROOM_NOT_FOUND);
+    return command.reply(Errno::ROOM_NOT_FOUND);
 
   const int joinStatus = room->addPeer(command.peer());
 
-  if(joinStatus != Cows::OK)
+  if(joinStatus != Errno::OK)
     command.reply(joinStatus);
 }
 
@@ -71,7 +71,7 @@ void User::part(const Command &command)
   Room *room = command.server()->findRoom(roomName);
 
   if(!room || !room->hasPeer(command.peer()))
-    return command.reply(Cows::FOREIGN_ROOM);
+    return command.reply(Errno::FOREIGN_ROOM);
 
   room->removePeer(command.peer());
 }
