@@ -19,6 +19,12 @@ public:
     Private,
   };
 
+  enum PartReason
+  {
+    PeerLost,
+    UserPart
+  };
+
   static Type typeOf(const QString &name);
 
   Room(const QString &name, QObject *parent = 0);
@@ -29,7 +35,8 @@ public:
 
   bool hasPeer(Peer *peer) const;
   int addPeer(Peer *peer);
-  int removePeer(Peer *peer);
+  int removePeer(Peer *peer, const PartReason reason,
+    const QString &userString = QString());
 
   int broadcast(const Command &command);
 

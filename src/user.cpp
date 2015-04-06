@@ -68,10 +68,12 @@ void User::join(const Command &command)
 void User::part(const Command &command)
 {
   const QString roomName = command.argument(0);
+  const QString reason = command.argument(1);
+
   Room *room = command.server()->findRoom(roomName);
 
   if(!room || !room->hasPeer(command.peer()))
     return command.reply(Errno::FOREIGN_ROOM);
 
-  room->removePeer(command.peer());
+  room->removePeer(command.peer(), Room::UserPart, reason);
 }

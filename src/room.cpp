@@ -57,12 +57,15 @@ int Room::addPeer(Peer *peer)
   return Errno::OK;
 }
 
-int Room::removePeer(Peer *peer)
+int Room::removePeer(Peer *peer, const PartReason reason,
+  const QString &userString)
 {
   LOG_INFO(QString("peer %1 left %2").arg(peer->uuid().toString(), m_name));
 
   Command announcement(QStringLiteral("part"), m_name);
   announcement.addArgument(peer->uuid().toString());
+  announcement.addArgument(QString::number(reason));
+  announcement.addArgument(userString);
   broadcast(announcement);
 
   peer->disconnect(this);
@@ -73,7 +76,7 @@ int Room::removePeer(Peer *peer)
 
 void Room::peerDisconnected()
 {
-  removePeer(qobject_cast<Peer *>(sender()));
+  removePeer(qobject_cast<Peer *>(sender()), PeerLost);
 }
 
 int Room::broadcast(const Command &command)
