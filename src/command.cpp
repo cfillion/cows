@@ -47,7 +47,7 @@ CommandList Command::unserialize(const QString &text, Peer *peer)
     if(command.isValid())
       commands << command;
     else
-      LOG_WARNING("tried to read an invalid command");
+      LOG_WARNING("dropped an invalid command (read)");
   }
 
   return commands;
@@ -59,9 +59,17 @@ Command::Command(const QString &name, const QString &roomName,
 {
 }
 
-bool Command::containsSeparators(const QString &input) const
+bool Command::containsIllegal(const QString &input) const
 {
-  return input.contains(COMMAND_SEPARATOR) || input.contains(PART_SEPARATOR);
+  // detects ASCII control characters
+  // see http://en.wikipedia.org/wiki/ASCII#ASCII_control_code_chart
+
+  Q_FOREACH(const QChar &c, input) {
+    if((c <= 0x1F || c == 0x7F) && !QStringLiteral("\r\n\t").contains(c))
+      return true;
+  }
+
+  return false;
 }
 
 bool Command::isValid() const
@@ -70,15 +78,15 @@ bool Command::isValid() const
     || m_key.length() > MAX_LENGTH)
     return false;
 
-  if(containsSeparators(m_name) || containsSeparators(m_key)
-    || containsSeparators(m_roomName))
+  if(containsIllegal(m_name) || containsIllegal(m_key) ||
+    containsIllegal(m_roomName))
     return false;
 
   if(m_arguments.size() > MAX_ARG_COUNT)
     return false;
 
   Q_FOREACH(const QString &argument, m_arguments) {
-    if(argument.length() > MAX_ARG_LENGTH || containsSeparators(argument))
+    if(argument.length() > MAX_ARG_LENGTH || containsIllegal(argument))
       return false;
   }
 

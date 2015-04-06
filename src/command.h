@@ -44,7 +44,7 @@ public:
   void reply(const int errorCode) const;
 
 private:
-  bool containsSeparators(const QString &text) const;
+  bool containsIllegal(const QString &text) const;
 
   QString m_name;
   QString m_key;
