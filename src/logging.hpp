@@ -1,10 +1,10 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
-#include "logger.h"
+#include "logger.hpp"
 
 #define LOG_MODULE(name) \
-  static const QString _LOG_MODULE_NAME = QStringLiteral(name);
+  static const std::string _LOG_MODULE_NAME = name;
 
 #define LOG_HERE(level, message) \
   Logger::instance()->log(level, _LOG_MODULE_NAME, message);

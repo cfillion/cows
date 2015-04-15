@@ -1,8 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <QFile>
-#include <QString>
+#include <fstream>
 
 class Logger
 {
@@ -16,24 +15,24 @@ public:
     FATAL,
   };
 
-  static void open(const QString &logFile = QString(),
-    const Level logLevel = Level::INFO);
+  static void open(const std::string &log_file = "-",
+    const Level log_level = INFO);
   static void open(Logger *replacement);
 
   static Logger *instance();
 
-  Logger(const QString &logFile, const Level logLevel);
+  Logger(const std::string &log_file, const Level log_level);
   ~Logger();
 
   void log(const Level level,
-    const QString &module, const QString &message);
+    const std::string &module, const std::string &message);
 
 private:
-  QString level2string(const Level level) const;
+  std::string level2string(const Level level) const;
 
   static Logger *s_instance;
 
-  QFile m_file;
+  std::ofstream m_file;
   int m_level;
 };
 

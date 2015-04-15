@@ -1,14 +1,15 @@
-#include "logger.h"
+#include "logger.hpp"
 
-#include <QDateTime>
-#include <QFile>
-#include <QtGlobal>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/format.hpp>
+#include <ctime>
+#include <iostream>
 
 Logger *Logger::s_instance = 0;
 
-void Logger::open(const QString &logFile, const Level logLevel)
+void Logger::open(const std::string &log_file, const Level log_level)
 {
-  Logger::open(new Logger(logFile, logLevel));
+  Logger::open(new Logger(log_file, log_level));
 }
 
 void Logger::open(Logger *replacement)
@@ -24,50 +25,49 @@ Logger *Logger::instance()
   return s_instance;
 }
 
-Logger::Logger(const QString &logFile, const Level logLevel)
-  : m_file(logFile), m_level(logLevel)
+Logger::Logger(const std::string &log_file, const Level log_level)
+  : m_level(log_level)
 {
   // The macros LOG_* can't be used here since s_instance isn't set yet.
 
-  if(!logFile.isEmpty()) {
-    if(!m_file.open(QIODevice::Append | QIODevice::Text))  {
-      log(ERROR, QStringLiteral("logger"),
-        QString("can not open '%1' for writing: %2")
-        .arg(logFile, m_file.errorString()));
+  if(log_file != "-") {
+    m_file.open(log_file, std::ofstream::trunc);
+
+    if(m_file.fail()) {
+      log(ERROR, "logger", str(
+        boost::format("can not open '%1%' for writing: %2%")
+        % log_file % strerror(errno)
+      ));
     }
   }
 }
 
 Logger::~Logger()
 {
-  if(m_file.isOpen())
+  if(m_file.is_open())
     m_file.close();
 }
 
 void Logger::log(const Level level,
-  const QString &module, const QString &message)
+  const std::string &module, const std::string &message)
 {
+  namespace pt = boost::posix_time;
+
   if(level < m_level)
     return;
 
-  const QDateTime now = QDateTime::currentDateTime();
+  const pt::ptime time = pt::microsec_clock::local_time();
 
-  const QString logLine = QString("[%1] (%2) %3: %4\n").arg(
-    now.toString(Qt::RFC2822Date), level2string(level), module, message
+  const std::string line = str(
+    boost::format("[%1%] (%2%) %3%: %4%")
+    % time % level2string(level) % module % message
   );
 
-  // The value returned by qPrintable cannot be reused multiple times.
-  // Storing it in a variable causes strange bugs and it might be dangerous.
-
-  fputs(qPrintable(logLine), stderr);
-
-  if(m_file.isOpen()) {
-    m_file.write(qPrintable(logLine));
-    m_file.flush();
-  }
+  std::ostream *stream = m_file.is_open() ? &m_file : &std::cerr;
+  *stream << line << std::endl;
 }
 
-QString Logger::level2string(const Level level) const
+std::string Logger::level2string(const Level level) const
 {
   switch(level) {
   case DEBUG:

@@ -1,90 +1,104 @@
-#include <QCommandLineOption>
-#include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QMap>
+#include <algorithm>
+#include <boost/format.hpp>
+#include <boost/program_options.hpp>
+#include <iostream>
+#include <sys/ioctl.h>
 
-#include "logging.h"
-#include "server.h"
+#include "logging.hpp"
+// #include "server.h"
 
 LOG_MODULE("main");
 
-bool setupLogging(const QString &logFile, QString logLevelName)
+bool setupLogging(const std::string &file, const std::string &level)
 {
-  QMap<QString, Logger::Level> logLevels;
-  logLevels["debug"] = Logger::DEBUG;
-  logLevels["info"] = Logger::INFO;
-  logLevels["warning"] = Logger::WARNING;
-  logLevels["error"] = Logger::ERROR;
-  logLevels["fatal"] = Logger::FATAL;
+  std::string level_lc = level;
+  std::transform(level_lc.begin(), level_lc.end(), level_lc.begin(), ::tolower);
 
-  logLevelName = logLevelName.toLower();
+  std::map<std::string, Logger::Level> levels = {
+    {"debug", Logger::DEBUG},
+    {"info", Logger::INFO},
+    {"warning", Logger::WARNING},
+    {"error", Logger::ERROR},
+    {"fatal", Logger::FATAL},
+  };
 
-  if(!logLevels.keys().contains(logLevelName)) {
-    Logger::open(logFile, Logger::FATAL);
+  if(!levels.count(level_lc)) {
+    Logger::open();
 
-    LOG_FATAL(QString("invalid log level: %1").arg(logLevelName));
+    LOG_FATAL(str(boost::format("invalid log level: %s") % level));
 
     return false;
   }
 
-  Logger::open(logFile, logLevels[logLevelName]);
+  Logger::open(file, levels[level_lc]);
 
   return true;
 }
 
 int main(int argc, char *argv[])
 {
-  QCoreApplication app(argc, argv);
+  namespace po = boost::program_options;
 
-  app.setApplicationName(QStringLiteral("cows"));
-  app.setApplicationVersion(QStringLiteral("0.0.1"));
-  app.setOrganizationName(QStringLiteral("cfillion"));
+  const std::string caption = "Chat on Web Sockets (COWS) v0.0.1";
 
-  const QString listenDefault = QStringLiteral("0.0.0.0:7169");
-  const QCommandLineOption listenOption(
-    QStringList() << "L" << "listen",
-    QObject::tr("listen for connections on the specified address and port"
-      " (default is %1)").arg(listenDefault),
-    QObject::tr("ADDRESS"), listenDefault
-  );
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-  const QCommandLineOption logFileOption(
-    QStringList() << "logfile",
-    QObject::tr("write log messages to a file instead of dumping them to stderr"),
-    QObject::tr("FILE")
-  );
+  po::options_description desc(caption, w.ws_col);
+  desc.add_options()
+    ("listen,L", po::value<std::string>()
+     ->value_name("ADDRESS:PORT")->default_value("0.0.0.0:7169"),
+     "listen for connections on the specified address and port")
 
-  const QCommandLineOption logLevelOption(
-    QStringList() << "loglevel",
-    QObject::tr("change the log verbosity level. Possible values are: "
-      "FATAL, ERROR, WARNING, INFO (default) and DEBUG"),
-    QObject::tr("LEVEL"), "info"
-  );
+    ("logfile,o", po::value<std::string>()
+     ->value_name("FILE")->default_value("-"),
+     "write log messages to a file instead of outputting to stderr")
+    ("loglevel,l", po::value<std::string>()
+     ->value_name("LEVEL")->default_value("INFO"),
+     "change the log verbosity level. Possible values are: "
+     "FATAL, ERROR, WARNING, INFO and DEBUG")
 
-  QCommandLineParser parser;
-  parser.setApplicationDescription(QStringLiteral("Chat on Web Sockets (COWS)"));
+    ("help,h",
+     "display this help and exit")
+    ("version,v",
+     "output version information and exit")
+  ;
 
-  parser.addHelpOption();
-  parser.addVersionOption();
+  po::variables_map vm;
 
-  parser.addOptions(QList<QCommandLineOption>()
-    << listenOption << logFileOption << logLevelOption
-  );
+  try {
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+  }
+  catch(po::error &err) {
+    Logger::open();
 
-  parser.process(app);
+    LOG_FATAL(err.what());
 
-  if(!setupLogging(parser.value(logFileOption), parser.value(logLevelOption)))
-    return -1;
+    return EXIT_FAILURE;
+  }
 
-  // For some reasons that I don't quite understand, both the server and client
-  // aren't listening/connecting if they are allocated on the stack.
+  if (vm.count("help")) {
+    std::cout << desc;
+    return EXIT_SUCCESS;
+  }
+
+  if(vm.count("version")) {
+    std::cout << caption << std::endl;
+    return EXIT_SUCCESS;
+  }
+
+  const std::string listen_addr = vm["listen"].as<std::string>();
+  const std::string log_file = vm["logfile"].as<std::string>();
+  const std::string log_level = vm["loglevel"].as<std::string>();
+
+  if(!setupLogging(log_file, log_level))
+    return EXIT_FAILURE;
+
+  // Server server;
   //
-  // Help is welcome.
+  // if(!server.open(parser.value(listenOption)))
+  //   return EXIT_FAILURe;
 
-  Server *server = new Server;
-
-  if(!server->open(parser.value(listenOption)))
-    return -1;
-
-  return app.exec();
+  return EXIT_SUCCESS;
 }
