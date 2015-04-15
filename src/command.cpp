@@ -37,9 +37,9 @@ CommandList Command::unserialize(const QString &text, Peer *peer)
   Q_FOREACH(const QString &commandText, splitted) {
     QStringList parts = commandText.split(PART_SEPARATOR);
 
-    const QString name = parts.takeFirst();
-    const QString key = parts.takeFirst();
-    const QString room = parts.takeFirst();
+    const QString name = parts.isEmpty() ? QString() : parts.takeFirst();
+    const QString key = parts.isEmpty() ? QString() : parts.takeFirst();
+    const QString room = parts.isEmpty() ? QString() : parts.takeFirst();
 
     Command command(name, room, parts, peer);
     command.setKey(key);
