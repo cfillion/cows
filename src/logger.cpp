@@ -5,9 +5,11 @@
 #include <ctime>
 #include <iostream>
 
+using namespace std;
+
 Logger *Logger::s_instance = 0;
 
-void Logger::open(const std::string &log_file, const Level log_level)
+void Logger::open(const string &log_file, const Level log_level)
 {
   Logger::open(new Logger(log_file, log_level));
 }
@@ -25,19 +27,19 @@ Logger *Logger::instance()
   return s_instance;
 }
 
-Logger::Logger(const std::string &log_file, const Level log_level)
+Logger::Logger(const string &log_file, const Level log_level)
   : m_level(log_level)
 {
   // The macros LOG_* can't be used here since s_instance isn't set yet.
 
   if(log_file != "-") {
-    m_file.open(log_file, std::ofstream::trunc);
+    m_file.open(log_file, ofstream::trunc);
 
     if(m_file.fail()) {
-      log(ERROR, "logger", str(
+      log(ERROR, "logger",
         boost::format("can not open '%1%' for writing: %2%")
         % log_file % strerror(errno)
-      ));
+      );
     }
   }
 }
@@ -49,7 +51,7 @@ Logger::~Logger()
 }
 
 void Logger::log(const Level level,
-  const std::string &module, const std::string &message)
+  const string &module, const string &message)
 {
   namespace pt = boost::posix_time;
 
@@ -58,16 +60,22 @@ void Logger::log(const Level level,
 
   const pt::ptime time = pt::microsec_clock::local_time();
 
-  const std::string line = str(
+  const string line = str(
     boost::format("[%1%] (%2%) %3%: %4%")
     % time % level2string(level) % module % message
   );
 
-  std::ostream *stream = m_file.is_open() ? &m_file : &std::cerr;
-  *stream << line << std::endl;
+  ostream *stream = m_file.is_open() ? &m_file : &cerr;
+  *stream << line << endl;
 }
 
-std::string Logger::level2string(const Level level) const
+void Logger::log(const Level level, const string &module,
+  const boost::format &format)
+{
+  log(level, module, format.str());
+}
+
+string Logger::level2string(const Level level) const
 {
   switch(level) {
   case DEBUG:

@@ -1,6 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <boost/format/format_fwd.hpp>
 #include <fstream>
 
 class Logger
@@ -22,10 +23,12 @@ public:
   static Logger *instance();
 
   Logger(const std::string &log_file, const Level log_level);
-  ~Logger();
+  virtual ~Logger();
 
   void log(const Level level,
     const std::string &module, const std::string &message);
+  void log(const Level level,
+    const std::string &module, const boost::format &format);
 
 private:
   std::string level2string(const Level level) const;

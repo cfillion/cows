@@ -7,14 +7,16 @@
 #include "logging.hpp"
 // #include "server.h"
 
+using namespace std;
+
 LOG_MODULE("main");
 
-bool setupLogging(const std::string &file, const std::string &level)
+bool setupLogging(const string &file, const string &level)
 {
-  std::string level_lc = level;
-  std::transform(level_lc.begin(), level_lc.end(), level_lc.begin(), ::tolower);
+  string level_lc = level;
+  transform(level_lc.begin(), level_lc.end(), level_lc.begin(), ::tolower);
 
-  std::map<std::string, Logger::Level> levels = {
+  map<string, Logger::Level> levels = {
     {"debug", Logger::DEBUG},
     {"info", Logger::INFO},
     {"warning", Logger::WARNING},
@@ -25,7 +27,7 @@ bool setupLogging(const std::string &file, const std::string &level)
   if(!levels.count(level_lc)) {
     Logger::open();
 
-    LOG_FATAL(str(boost::format("invalid log level: %s") % level));
+    LOG_FATAL(boost::format("invalid log level: %s") % level);
 
     return false;
   }
@@ -39,21 +41,21 @@ int main(int argc, char *argv[])
 {
   namespace po = boost::program_options;
 
-  const std::string caption = "Chat on Web Sockets (COWS) v0.0.1";
+  const string caption = "Chat on Web Sockets (COWS) v0.0.1";
 
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
   po::options_description desc(caption, w.ws_col);
   desc.add_options()
-    ("listen,L", po::value<std::string>()
-     ->value_name("ADDRESS:PORT")->default_value("0.0.0.0:7169"),
+    ("listen,L", po::value<string>()
+     ->value_name("HOST:PORT")->default_value("0.0.0.0:7169"),
      "listen for connections on the specified address and port")
 
-    ("logfile,o", po::value<std::string>()
+    ("logfile,o", po::value<string>()
      ->value_name("FILE")->default_value("-"),
      "write log messages to a file instead of outputting to stderr")
-    ("loglevel,l", po::value<std::string>()
+    ("loglevel,l", po::value<string>()
      ->value_name("LEVEL")->default_value("INFO"),
      "change the log verbosity level. Possible values are: "
      "FATAL, ERROR, WARNING, INFO and DEBUG")
@@ -79,18 +81,18 @@ int main(int argc, char *argv[])
   }
 
   if (vm.count("help")) {
-    std::cout << desc;
+    cout << desc;
     return EXIT_SUCCESS;
   }
 
   if(vm.count("version")) {
-    std::cout << caption << std::endl;
+    cout << caption << endl;
     return EXIT_SUCCESS;
   }
 
-  const std::string listen_addr = vm["listen"].as<std::string>();
-  const std::string log_file = vm["logfile"].as<std::string>();
-  const std::string log_level = vm["loglevel"].as<std::string>();
+  const string listen_addr = vm["listen"].as<string>();
+  const string log_file = vm["logfile"].as<string>();
+  const string log_level = vm["loglevel"].as<string>();
 
   if(!setupLogging(log_file, log_level))
     return EXIT_FAILURE;
