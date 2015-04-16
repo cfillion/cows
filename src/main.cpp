@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 
 #include "logging.hpp"
-// #include "server.h"
+#include "server.hpp"
 
 using namespace std;
 
@@ -97,10 +97,7 @@ int main(int argc, char *argv[])
   if(!setupLogging(log_file, log_level))
     return EXIT_FAILURE;
 
-  // Server server;
-  //
-  // if(!server.open(parser.value(listenOption)))
-  //   return EXIT_FAILURe;
+  Server server;
 
-  return EXIT_SUCCESS;
+  return server.run(listen_addr) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
