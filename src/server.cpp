@@ -1,6 +1,5 @@
 #include "server.hpp"
 
-#include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
 
@@ -29,27 +28,16 @@ Server::~Server()
   // m_server->close();
 }
 
-bool Server::run(const std::string &listen_addr)
+bool Server::run(const std::string &host, const std::string &port)
 {
   using namespace boost;
   using namespace asio::ip;
-
-  std::vector<std::string> addr_parts;
-  split(addr_parts, listen_addr, is_any_of(":"));
-
-  if(addr_parts.size() != 2) {
-    LOG_FATAL(
-      format("invalid address: '%s'. format must be HOST:PORT") % listen_addr
-    );
-
-    return false;
-  }
 
   try {
     LOG_INFO("initializing...");
 
     tcp::resolver resolver(m_io);
-    const tcp::resolver::query query(addr_parts[0], addr_parts[1]);
+    const tcp::resolver::query query(host, port);
     const tcp::endpoint endpoint = *resolver.resolve(query);
     tcp::acceptor acceptor(m_io, endpoint);
 
@@ -63,7 +51,7 @@ bool Server::run(const std::string &listen_addr)
   }
   catch(const system::system_error &err) {
     LOG_FATAL(
-      format("can not listen on '%s': %s") % listen_addr % err.what()
+      format("can not listen on '%s:%s': %s") % host % port % err.what()
     );
     return false;
   }

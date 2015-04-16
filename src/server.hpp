@@ -22,7 +22,7 @@ public:
   // QList<Room *> rooms() const { return m_rooms.values(); }
   // Room *findRoom(const QString &name) const;
 
-  bool run(const std::string &listen_addr);
+  bool run(const std::string &host, const std::string &port);
   void stop();
 
 private:

@@ -48,9 +48,12 @@ int main(int argc, char *argv[])
 
   po::options_description desc(caption, w.ws_col);
   desc.add_options()
-    ("listen,L", po::value<string>()
-     ->value_name("HOST:PORT")->default_value("0.0.0.0:7169"),
-     "listen for connections on the specified address and port")
+    ("bind,b", po::value<string>()
+     ->value_name("ADDRESS")->default_value("0.0.0.0"),
+     "listen for connections on the specified hostname or IP address")
+    ("port,p", po::value<string>()
+     ->value_name("PORT")->default_value("7169"),
+     "listen for connections on the specified port")
 
     ("logfile,o", po::value<string>()
      ->value_name("FILE")->default_value("-"),
@@ -90,14 +93,15 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
   }
 
-  const string listen_addr = vm["listen"].as<string>();
   const string log_file = vm["logfile"].as<string>();
   const string log_level = vm["loglevel"].as<string>();
 
   if(!setupLogging(log_file, log_level))
     return EXIT_FAILURE;
 
-  Server server;
+  const string host = vm["bind"].as<string>();
+  const string port = vm["port"].as<string>();
 
-  return server.run(listen_addr) ? EXIT_SUCCESS : EXIT_FAILURE;
+  Server server;
+  return server.run(host, port) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
