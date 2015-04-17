@@ -1,58 +1,57 @@
 #include "server.hpp"
 
-#include <boost/asio.hpp>
 #include <boost/format.hpp>
 
 #include "logging.hpp"
-// #include "names.h"
-// #include "peer.h"
+#include "names.hpp"
+#include "peer.hpp"
 // #include "room.h"
+
+using namespace std;
+using namespace boost;
+using namespace asio::ip;
 
 LOG_MODULE("server");
 
 Server::Server()
+  : m_acceptor(m_io), m_next_socket(m_io)
 {
-  // m_server = new QWebSocketServer(qApp->applicationName(),
-  //   QWebSocketServer::NonSecureMode, this);
-
-
-  // connect(m_server, &QWebSocketServer::newConnection, this, &Server::createPeer);
-  // connect(m_server, &QWebSocketServer::closed, qApp, &QCoreApplication::quit);
-  //
   // m_rooms["#hello_world"] = new Room("#hello_world", this);
   // m_rooms["#42"] = new Room("#42", this);
 }
 
 Server::~Server()
 {
-  // m_server->close();
+  for(Peer *peer: m_peers)
+    delete peer;
 }
 
-bool Server::run(const std::string &host, const std::string &port)
+bool Server::run(const string &host, const string &port)
 {
-  using namespace boost;
-  using namespace asio::ip;
+  LOG_INFO("initializing...");
 
   try {
-    LOG_INFO("initializing...");
-
     tcp::resolver resolver(m_io);
     const tcp::resolver::query query(host, port);
     const tcp::endpoint endpoint = *resolver.resolve(query);
-    tcp::acceptor acceptor(m_io, endpoint);
+    m_acceptor = tcp::acceptor(m_io, endpoint);
+
+    accept_client();
 
     // endpoint doesn't know the effective port if the OS assigned a random one
-    // however acceptor.local_endpoint() does
+    // however m_acceptor.local_endpoint() does
 
     LOG_INFO(
-      format("initialization completed. clients are now accepted on ws://%s:%d/")
-      % acceptor.local_endpoint().address() % acceptor.local_endpoint().port()
+      format("initialization completed. accepting connections on ws://%s:%d/")
+      % m_acceptor.local_endpoint().address()
+      % m_acceptor.local_endpoint().port()
     );
   }
   catch(const system::system_error &err) {
     LOG_FATAL(
-      format("can not listen on '%s:%s': %s") % host % port % err.what()
+      format("unable to listen on %s:%s - %s") % host % port % err.what()
     );
+
     return false;
   }
 
@@ -66,26 +65,34 @@ void Server::stop()
   m_io.stop();
 }
 
-// void Server::createPeer()
-// {
-//   LOG_INFO(QString("registering new peer (%1)").arg(m_peers.count() + 1));
-//
-//   Peer *peer = new Peer(m_server->nextPendingConnection(), this);
-//   connect(peer, &Peer::disconnected, this, &Server::destroyPeer);
-//
-//   m_peers << peer;
-// }
-//
-// void Server::destroyPeer()
-// {
-//   Peer *peer = qobject_cast<Peer *>(sender());
-//
-//   LOG_INFO(QString("unregistering peer %1").arg(peer->uuid().toString()));
-//
-//   m_peers.removeAll(peer);
-//   peer->deleteLater();
-// }
-//
+void Server::accept_client()
+{
+  m_acceptor.async_accept(m_next_socket, [this](system::error_code ec)
+  {
+    if(!ec)
+      create_peer();
+
+    accept_client();
+  });
+}
+
+void Server::create_peer()
+{
+  LOG_INFO(format("registering new peer in slot %s") % m_peers.size());
+
+  Peer *peer = new Peer(std::move(m_next_socket), this);
+
+  m_peers.insert(peer);
+  peer->on_disconnect.connect([this, peer] {
+    LOG_INFO(format("unregistering peer %s") % peer->uuid());
+
+    m_peers.erase(peer);
+    delete peer;
+  });
+
+  peer->start();
+}
+
 // void Server::execute(const Command &command) const
 // {
 //   const QString name = command.name();

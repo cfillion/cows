@@ -2,17 +2,19 @@
 #define SERVER_HPP
 
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <set>
 #include <string>
 
 // class Command;
-// class Peer;
+class Peer;
 // class Room;
 
 class Server
 {
 public:
   Server();
-  virtual ~Server();
+  ~Server();
 
   // void execute(const Command &command) const;
   //
@@ -27,16 +29,15 @@ public:
 
 private:
   boost::asio::io_service m_io;
+  boost::asio::ip::tcp::acceptor m_acceptor;
+  boost::asio::ip::tcp::socket m_next_socket;
 
-// private Q_SLOTS:
-//   void createPeer();
-//   void destroyPeer();
-//
-// private:
-//   QList<Peer *> m_peers;
+  std::set<Peer *> m_peers;
+
+  void accept_client();
+  void create_peer();
+
 //   QMap<QString, Room *> m_rooms;
-//
-//   QWebSocketServer *m_server;
 };
 
 #endif

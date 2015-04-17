@@ -1,15 +1,14 @@
-#ifndef NAMES_H
-#define NAMES_H
+#ifndef NAMES_HPP
+#define NAMES_HPP
 
 #include <map>
-#include <QString>
 
 class Command;
 
 namespace Names
 {
   typedef void (*Callback)(const Command &);
-  typedef std::map<QString, Callback> NameList;
+  typedef std::map<std::string, Callback> NameList;
 
   extern NameList COMMANDS;
 };

@@ -1,14 +1,10 @@
-#include "names.h"
+#include "names.hpp"
 
-#include "user.h"
-
-#define COMMAND(n, c) {QStringLiteral(n), c},
+#include "user.hpp"
 
 Names::NameList Names::COMMANDS = {
-  COMMAND("msg", User::send)
-  COMMAND("action", User::send)
-  COMMAND("join", User::join)
-  COMMAND("part", User::part)
+  {"msg", User::send},
+  {"action", User::send},
+  {"join", User::join},
+  {"part", User::part},
 };
-
-#undef COMMAND

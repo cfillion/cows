@@ -1,5 +1,5 @@
-#ifndef ERRORS_H
-#define ERRORS_H
+#ifndef ERRORS_HPP
+#define ERRORS_HPP
 
 namespace Errno
 {
@@ -14,4 +14,5 @@ namespace Errno
     INVALID_ROOM,
   };
 };
+
 #endif

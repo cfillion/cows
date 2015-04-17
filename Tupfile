@@ -13,4 +13,5 @@ endif
 : src/main.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/logger.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/server.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
+: src/peer.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : build/*.o |> $(CXX) $(CXXFLAGS) $(LDFLAGS) %f -o %o |> cows
