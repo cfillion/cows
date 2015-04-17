@@ -54,9 +54,11 @@ void Logger::log(const Level level,
 
   const pt::ptime time = pt::microsec_clock::local_time();
 
-  const string line = str(
-    boost::format("[%1%] (%2%) %3%: %4%")
-    % time % level2string(level) % module % message
+  const string line = str(boost::format("[%s] (%s) %s: %s")
+    % time
+    % level2string(level)
+    % module
+    % message
   );
 
   ostream *stream = m_file.is_open() ? &m_file : &cerr;

@@ -42,8 +42,9 @@ bool Server::run(const string &host, const string &port)
     );
   }
   catch(const system::system_error &err) {
-    LOG_FATAL(
-      format("unable to listen on %s:%s - %s") % host % port % err.what()
+    LOG_FATAL(format("unable to listen on %s:%s - %s")
+      % host % port
+      % err.what()
     );
 
     return false;

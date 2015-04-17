@@ -23,7 +23,11 @@ Peer::Peer(tcp::socket socket, Server *server)
   m_ip_address = m_socket.remote_endpoint().address().to_string();
   m_remote_port = m_socket.remote_endpoint().port();
 
-  LOG_INFO(format("address=%s:%d uuid=%s") % m_ip_address % m_remote_port % m_uuid);
+  LOG_INFO(format("address=%s:%d uuid=%s")
+    % m_ip_address
+    % m_remote_port
+    % m_uuid
+  );
 }
 
 Peer::~Peer()
