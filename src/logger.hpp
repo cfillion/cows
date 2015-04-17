@@ -23,7 +23,6 @@ public:
   static Logger *instance();
 
   Logger(const std::string &log_file, const Level log_level);
-  ~Logger();
 
   void log(const Level level,
     const std::string &module, const std::string &message);

@@ -44,12 +44,6 @@ Logger::Logger(const string &log_file, const Level log_level)
   }
 }
 
-Logger::~Logger()
-{
-  if(m_file.is_open())
-    m_file.close();
-}
-
 void Logger::log(const Level level,
   const string &module, const string &message)
 {
