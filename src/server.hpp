@@ -10,11 +10,12 @@
 class Peer;
 // class Room;
 
+typedef std::shared_ptr<Peer> PeerPtr;
+
 class Server
 {
 public:
   Server();
-  ~Server();
 
   // void execute(const Command &command) const;
   //
@@ -32,10 +33,11 @@ private:
   boost::asio::ip::tcp::acceptor m_acceptor;
   boost::asio::ip::tcp::socket m_next_socket;
 
-  std::set<Peer *> m_peers;
+  std::set<PeerPtr> m_peers;
 
   void accept_client();
   void create_peer();
+  void destroy_peer(PeerPtr peer);
 
 //   QMap<QString, Room *> m_rooms;
 };

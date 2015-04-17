@@ -8,8 +8,11 @@
 
 // class Room;
 class Server;
+class Peer;
 
-class Peer
+typedef std::shared_ptr<Peer> PeerPtr;
+
+class Peer : public std::enable_shared_from_this<Peer>
 {
 public:
   Peer(boost::asio::ip::tcp::socket socket, Server *server);
@@ -27,7 +30,7 @@ public:
 //   void send(const QString &cmdName, const QString &roomName,
 //     const QStringList &args = QStringList());
 
-  boost::signals2::signal<void()> on_disconnect;
+  boost::signals2::signal<void(PeerPtr)> on_disconnect;
 
 private:
   boost::asio::ip::tcp::socket m_socket;

@@ -18,7 +18,7 @@ Peer::Peer(tcp::socket socket, Server *server)
   : m_socket(std::move(socket)), m_server(server),
     m_uuid(uuids::to_string(uuids::random_generator()()))
 {
-  // socket is no more, long life to m_socket!
+  // socket is dead. long live m_socket!
 
   m_ip_address = m_socket.remote_endpoint().address().to_string();
   m_remote_port = m_socket.remote_endpoint().port();
@@ -33,7 +33,7 @@ Peer::~Peer()
 
 void Peer::start()
 {
-  on_disconnect();
+  on_disconnect(shared_from_this());
 }
 
 // void Peer::send(const CommandList &commands)

@@ -20,12 +20,6 @@ Server::Server()
   // m_rooms["#42"] = new Room("#42", this);
 }
 
-Server::~Server()
-{
-  for(Peer *peer: m_peers)
-    delete peer;
-}
-
 bool Server::run(const string &host, const string &port)
 {
   LOG_INFO("initializing...");
@@ -80,17 +74,17 @@ void Server::create_peer()
 {
   LOG_INFO(format("registering new peer in slot %s") % m_peers.size());
 
-  Peer *peer = new Peer(std::move(m_next_socket), this);
-
+  PeerPtr peer = make_shared<Peer>(std::move(m_next_socket), this);
   m_peers.insert(peer);
-  peer->on_disconnect.connect([this, peer] {
-    LOG_INFO(format("unregistering peer %s") % peer->uuid());
-
-    m_peers.erase(peer);
-    delete peer;
-  });
-
+  peer->on_disconnect.connect(bind(&Server::destroy_peer, this, _1));
   peer->start();
+}
+
+void Server::destroy_peer(PeerPtr peer)
+{
+  LOG_INFO(format("unregistering peer %s") % peer->uuid());
+
+  m_peers.erase(peer);
 }
 
 // void Server::execute(const Command &command) const
