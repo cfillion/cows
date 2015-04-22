@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -Wextra -pipe
 CXXFLAGS += -fcolor-diagnostics
 CXXFLAGS += -g -O2 -std=c++11
 
-LDFLAGS = -lboost_program_options -lboost_system
+LDFLAGS = -lboost_program_options -lboost_system -lpthread
 
 ifeq (@(TUP_PLATFORM),macosx)
   LDFLAGS += -stdlib=libc++
@@ -14,4 +14,4 @@ endif
 : src/logger.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/server.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/peer.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: build/*.o |> $(CXX) $(CXXFLAGS) $(LDFLAGS) %f -o %o |> cows
+: build/*.o |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |> cows
