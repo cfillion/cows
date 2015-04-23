@@ -73,7 +73,7 @@ void Server::accept_client()
 
 void Server::create_peer()
 {
-  LOG_INFO(format("registering new peer in slot %s") % m_peers.size());
+  LOG_DEBUG(format("registering new peer in slot %s") % m_peers.size());
 
   PeerPtr peer = make_shared<Peer>(std::move(m_next_socket), this);
   m_peers.insert(peer);
@@ -83,7 +83,7 @@ void Server::create_peer()
 
 void Server::destroy_peer(PeerPtr peer)
 {
-  LOG_INFO(format("unregistering peer %s") % peer->uuid());
+  LOG_DEBUG(format("unregistering peer %s") % peer->uuid());
 
   m_peers.erase(peer);
 }

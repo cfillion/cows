@@ -8,12 +8,13 @@
 enum HttpStatus
 {
   HTTP_CONTINUE = 100,
-  HTTP_SWITCH_PROTOCOL = 101,
+  HTTP_SWITCH_PROTOCOLS = 101,
 
   HTTP_BAD_REQUEST = 400,
   HTTP_NOT_FOUND = 404,
   HTTP_URI_TOO_LONG = 414,
 
+  HTTP_INTERNAL_ERROR = 500,
   HTTP_NOT_IMPLEMENTED = 501,
 };
 
@@ -27,13 +28,13 @@ struct HttpReply
 {
   HttpStatus status;
   std::vector<HttpHeader> headers;
+  std::string body;
 };
 
 class Handshake
 {
 public:
   Handshake();
-  void reset();
 
   template <typename Iterator>
   boost::tribool parse(Iterator begin, Iterator end)
@@ -44,7 +45,7 @@ public:
       switch(m_reply.status) {
       case HTTP_CONTINUE:
         break;
-      case HTTP_SWITCH_PROTOCOL:
+      case HTTP_SWITCH_PROTOCOLS:
         return true;
       default:
         return false;
@@ -53,6 +54,8 @@ public:
 
     return boost::indeterminate;
   }
+
+  std::string encode_reply() const;
 
 private:
   enum State
@@ -92,18 +95,7 @@ private:
     return isalnum(c);
   }
 
-  bool expect(const bool test, const State pass)
-  {
-    if(test)
-      m_state = pass;
-    else
-      set_reply(HTTP_BAD_REQUEST);
-
-    return test;
-  }
-
-  void set_reply(const HttpStatus status,
-    const std::vector<HttpHeader> &h = {});
+  bool expect(const bool test, const State pass);
 
   State m_state;
   std::string m_method;

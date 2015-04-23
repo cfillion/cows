@@ -1,8 +1,10 @@
 #include "names.hpp"
 
+#include <string>
+
 #include "user.hpp"
 
-Names::NameList Names::COMMANDS = {
+const Names::NameList Names::COMMANDS {
   {"msg", User::send},
   {"action", User::send},
   {"join", User::join},

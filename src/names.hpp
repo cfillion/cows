@@ -10,7 +10,7 @@ namespace Names
   typedef void (*Callback)(const Command &);
   typedef std::map<std::string, Callback> NameList;
 
-  extern NameList COMMANDS;
+  extern const NameList COMMANDS;
 };
 
 #endif

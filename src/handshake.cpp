@@ -2,6 +2,8 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <map>
+#include <sstream>
 #include <unistd.h>
 
 #include "logging.hpp"
@@ -11,20 +13,23 @@ LOG_MODULE("handshake");
 const unsigned int MAX_LENGTH = getpagesize();
 const unsigned int MAX_HEADERS = 64;
 
+const std::map<HttpStatus, std::string> STATUS_STRINGS {
+  {HTTP_CONTINUE, "Continue"},
+  {HTTP_SWITCH_PROTOCOLS, "Switch Protocols"},
+
+  {HTTP_BAD_REQUEST, "Bad Request"},
+  {HTTP_NOT_FOUND, "Not Found"},
+  {HTTP_URI_TOO_LONG, "URI Too Long"},
+
+  {HTTP_INTERNAL_ERROR, "Internal Error"},
+  {HTTP_NOT_IMPLEMENTED, "Not Implemented"},
+};
+
 using namespace boost;
 
 Handshake::Handshake()
-  : m_reply{HTTP_CONTINUE, {}}
+  : m_state(METHOD), m_reply {HTTP_CONTINUE, {}, ""}
 {
-  reset();
-}
-
-void Handshake::reset()
-{
-  m_state = METHOD;
-  m_method.clear();
-  m_target.clear();
-  m_headers.clear();
 }
 
 void Handshake::consume(const char c)
@@ -32,31 +37,27 @@ void Handshake::consume(const char c)
   switch(m_state) {
   case METHOD:
     if(m_method.size() >= 3 && m_method != "GET") {
-      LOG_DEBUG(format("unsupported method: %s") % m_method);
-      set_reply(HTTP_NOT_IMPLEMENTED);
+      m_reply = {HTTP_NOT_IMPLEMENTED, {}, ""};
       break;
     }
 
     if(isalpha(c))
       m_method.push_back(c);
-    else if(c == '\x20')
-      m_state = TARGET;
     else
-      set_reply(HTTP_BAD_REQUEST);
+      expect(c == '\x20', TARGET);
 
     break;
   case TARGET:
     if(c == '\x20') {
       if(m_target != "/")
-        set_reply(HTTP_NOT_FOUND);
+        m_reply = {HTTP_NOT_FOUND, {}, "There's no such thing here."};
 
       m_state = VERSION_H;
     }
-    else if(isspace(c))
-      set_reply(HTTP_BAD_REQUEST);
-    else {
-      if(m_target.size() == 1)
-        set_reply(HTTP_URI_TOO_LONG);
+    else if(expect(!isspace(c), m_state)) {
+      if(m_target.size() > 37)
+        m_reply = {HTTP_URI_TOO_LONG, {},
+          "Target URI exceeded maximum allowed size."};
       else
         m_target.push_back(c);
     }
@@ -91,23 +92,21 @@ void Handshake::consume(const char c)
     break;
   case HEADER_BREAK_LF:
     if(expect(islf(c), HEADER_NAME)) {
-      if(m_headers.size() <= MAX_HEADERS)
+      if(m_headers.size() > MAX_HEADERS)
+        m_reply = {HTTP_BAD_REQUEST, {},
+          "Header count exceeded maximum allowed count."};
+      else
         m_headers.push_back({});
-      else {
-        LOG_DEBUG("header count exceeded maximum allowed count");
-        set_reply(HTTP_BAD_REQUEST);
-      }
     }
 
     break;
   case HEADER_NAME:
     if(istchar(c)) {
-      if(m_headers.back().name.size() <= MAX_LENGTH)
+      if(m_headers.back().name.size() > MAX_LENGTH)
+        m_reply = {HTTP_BAD_REQUEST, {},
+          "Header name exceeded maximum allowed size."};
+      else
         m_headers.back().name.push_back(c);
-      else {
-        LOG_DEBUG("header name exceeded maximum size");
-        set_reply(HTTP_BAD_REQUEST);
-      }
     }
     else if(c == ':')
       m_state = HEADER_VALUE;
@@ -116,7 +115,7 @@ void Handshake::consume(const char c)
       m_state = BODY_LF;
     }
     else 
-      set_reply(HTTP_BAD_REQUEST);
+      m_reply = {HTTP_BAD_REQUEST, {}, "Invalid headers."};
 
     break;
   case HEADER_VALUE:
@@ -124,13 +123,10 @@ void Handshake::consume(const char c)
       algorithm::trim(m_headers.back().value);
       m_state = HEADER_BREAK_LF;
     }
-    else if(m_headers.back().value.size() > MAX_LENGTH) {
-      LOG_DEBUG(format("header %s exceeded maximum size")
-        % m_headers.back().name
-      );
-
-      set_reply(HTTP_BAD_REQUEST);
-    }
+    else if(m_headers.back().value.size() > MAX_LENGTH)
+      m_reply = {HTTP_BAD_REQUEST, {},
+        str(format("Header %s exceeded maximum allowed size.")
+        % m_headers.back().name)};
     else
       m_headers.back().value.push_back(c);
 
@@ -141,8 +137,19 @@ void Handshake::consume(const char c)
 
     break;
   case BODY:
+    m_reply = {HTTP_INTERNAL_ERROR, {}, "Something whent wrong server-side."};
     break;
   };
+}
+
+bool Handshake::expect(const bool test, const State pass)
+{
+  if(test)
+    m_state = pass;
+  else
+    m_reply = {HTTP_BAD_REQUEST, {}, "Failed expectation."};
+
+  return test;
 }
 
 void Handshake::finalize()
@@ -150,11 +157,40 @@ void Handshake::finalize()
   for(HttpHeader &h : m_headers)
     LOG_DEBUG(format("%s = %s") % h.name % h.value);
 
-  set_reply(HTTP_SWITCH_PROTOCOL);
+  m_reply = {HTTP_SWITCH_PROTOCOLS, {}, ""};
 }
 
-void Handshake::set_reply(const HttpStatus s, const std::vector<HttpHeader> &h)
+std::string Handshake::encode_reply() const
 {
-  LOG_DEBUG(format("reporting http code %d at stage %d") % s % m_state);
-  m_reply = {s, h};
-};
+  std::string status_string = "Unknown";
+  if(STATUS_STRINGS.count(m_reply.status))
+    status_string = STATUS_STRINGS.at(m_reply.status);
+
+  const std::string body {str(format(
+    "<html><head><title>%1% %2%</title></head>"
+    "<body><h1>%1% %2%</h1><p>%3%</p><hr>"
+    "<address>C.O.W.S Server</address></body></html>\r\n")
+    % m_reply.status % status_string
+    % m_reply.body
+  )};
+
+  HttpReply reply = m_reply;
+  reply.headers.insert(reply.headers.begin(), {
+    {"Content-Type", "text/html"},
+    {"Content-Length", std::to_string(body.size())},
+    {"Server", "cows"},
+  });
+
+  std::ostringstream out;
+  out << format("HTTP/1.1 %d %s\r\n") % reply.status % status_string;
+
+  for(HttpHeader &h : reply.headers)
+    out << format("%s: %s\r\n") % h.name % h.value;
+
+  out << "\r\n" << body;
+
+  LOG_DEBUG(format("status is %d %s \"%s\" at stage %d")
+    % reply.status % status_string % reply.body % m_state);
+
+  return out.str();
+}

@@ -1,5 +1,6 @@
 #include "peer.hpp"
 
+#include <boost/asio/write.hpp>
 #include <boost/format.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -15,7 +16,7 @@ using namespace asio::ip;
 LOG_MODULE("peer");
 
 Peer::Peer(tcp::socket socket, Server *server)
-  : m_socket(std::move(socket)), m_server(server),
+  : m_socket(std::move(socket)), m_server(server), m_state(Handshake),
     m_uuid(uuids::to_string(uuids::random_generator()()))
 {
   // socket is dead. long live m_socket!
@@ -23,16 +24,11 @@ Peer::Peer(tcp::socket socket, Server *server)
   m_ip_address = m_socket.remote_endpoint().address().to_string();
   m_remote_port = m_socket.remote_endpoint().port();
 
-  LOG_INFO(format("address=%s:%d uuid=%s")
+  LOG_DEBUG(format("address=%s:%d uuid=%s")
     % m_ip_address
     % m_remote_port
     % m_uuid
   );
-}
-
-Peer::~Peer()
-{
-  LOG_INFO(format("%s destroyed") % m_uuid);
 }
 
 void Peer::start()
@@ -48,21 +44,32 @@ void Peer::kill()
 void Peer::read()
 {
   m_socket.async_read_some(asio::buffer(m_buffer),
-    bind(&Peer::receive, this, _1, _2));
+    bind(&Peer::shake_hands, this, _1, _2));
 }
 
-void Peer::receive(system::error_code ec, std::size_t bytes)
+void Peer::shake_hands(system::error_code ec, std::size_t bytes)
 {
   if(ec)
     return kill();
 
-  tribool result = m_handshake.parse(m_buffer.begin(), m_buffer.begin() + bytes);
-  if(result)
-    ;
-  else if(!result)
-    kill();
-  else
-    read();
+  LOG_DEBUG(format("parsing %d-bytes handshake from %s") % bytes % m_uuid);
+
+  const tribool status = m_handshake.parse(
+    m_buffer.begin(), m_buffer.begin() + bytes);
+
+  if(indeterminate(status))
+    return read();
+
+  asio::async_write(m_socket, asio::buffer(m_handshake.encode_reply()),
+  [&status, this](system::error_code ec, std::size_t)
+  {
+    if(!status || ec)
+      kill();
+    else {
+      m_state = DataTransfer;
+      read();
+    }
+  });
 }
 
 void Peer::write()
