@@ -43,8 +43,14 @@ void Peer::kill()
 
 void Peer::read()
 {
-  m_socket.async_read_some(asio::buffer(m_buffer),
-    bind(&Peer::shake_hands, this, _1, _2));
+  switch(m_state) {
+  case Handshake:
+    m_socket.async_read_some(asio::buffer(m_buffer),
+      bind(&Peer::shake_hands, this, _1, _2));
+    break;
+  case DataTransfer:
+    break;
+  }
 }
 
 void Peer::shake_hands(system::error_code ec, std::size_t bytes)
