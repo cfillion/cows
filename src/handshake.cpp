@@ -78,13 +78,13 @@ void Handshake::consume(const char c)
     expect(c == '/', VERSION_MAJOR);
     break;
   case VERSION_MAJOR:
-    expect(c == '1', VERSION_DOT);
+    expect(isdigit(c), VERSION_DOT);
     break;
   case VERSION_DOT:
     expect(c == '.', VERSION_MINOR);
     break;
   case VERSION_MINOR:
-    expect(c == '1', START_BREAK_CR);
+    expect(isdigit(c), START_BREAK_CR);
     break;
   case START_BREAK_CR:
     expect(iscr(c), HEADER_BREAK_LF);
@@ -111,8 +111,10 @@ void Handshake::consume(const char c)
     }
     else if(c == ':')
       m_state = HEADER_VALUE;
-    else if(iscr(c))
+    else if(iscr(c) && m_headers.back().name.empty()) {
+      m_headers.pop_back(); // remove the trailing (empty) header
       m_state = BODY_LF;
+    }
     else 
       set_reply(HTTP_BAD_REQUEST);
 
@@ -145,8 +147,6 @@ void Handshake::consume(const char c)
 
 void Handshake::finalize()
 {
-  m_headers.pop_back(); // remove the trailing (empty) header
-
   for(HttpHeader &h : m_headers)
     LOG_DEBUG(format("%s = %s") % h.name % h.value);
 
