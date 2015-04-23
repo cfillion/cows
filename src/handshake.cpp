@@ -43,7 +43,7 @@ void Handshake::consume(const char c)
   switch(m_state) {
   case METHOD:
     if(m_method.size() >= 3 && m_method != "GET") {
-      m_reply = {HTTP_NOT_IMPLEMENTED, {}, ""};
+      m_reply = {HTTP_NOT_IMPLEMENTED, {}, "Unsupported method."};
       break;
     }
 
@@ -208,20 +208,28 @@ std::string Handshake::encode_reply() const
   if(STATUS_STRINGS.count(m_reply.status))
     status_string = STATUS_STRINGS.at(m_reply.status);
 
-  const std::string body {str(format(
-    "<html><head><title>%1% %2%</title></head>"
-    "<body><h1>%1% %2%</h1><p>%3%</p><hr>"
-    "<address>C.O.W.S Server</address></body></html>\r\n")
-    % m_reply.status % status_string
-    % m_reply.body
-  )};
+  LOG_DEBUG(format("status is %d %s \"%s\" at stage %d")
+    % m_reply.status % status_string % m_reply.body % m_state);
 
   HttpReply reply = m_reply;
   reply.headers.insert(reply.headers.begin(), {
     {"Content-Type", "text/html"},
-    {"Content-Length", std::to_string(body.size())},
     {"Server", "cows"},
   });
+
+  if(!m_reply.body.empty()) {
+    reply.body = str(format(
+      "<html><head><title>%1% %2%</title></head>"
+      "<body><h1>%1% %2%</h1><p>%3%</p><hr>"
+      "<address>C.O.W.S Server</address></body></html>\r\n")
+      % m_reply.status % status_string
+      % m_reply.body
+    );
+
+    reply.headers.insert(reply.headers.begin(), {
+      {"Content-Length", std::to_string(reply.body.size())}
+    });
+  }
 
   std::ostringstream out;
   out << format("HTTP/1.1 %d %s\r\n") % reply.status % status_string;
@@ -229,10 +237,7 @@ std::string Handshake::encode_reply() const
   for(HttpHeader &h : reply.headers)
     out << format("%s: %s\r\n") % h.name % h.value;
 
-  out << "\r\n" << body;
-
-  LOG_DEBUG(format("status is %d %s \"%s\" at stage %d")
-    % reply.status % status_string % reply.body % m_state);
+  out << "\r\n" << reply.body;
 
   return out.str();
 }
