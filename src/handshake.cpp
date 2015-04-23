@@ -106,7 +106,7 @@ void Handshake::consume(const char c)
         m_reply = {HTTP_BAD_REQUEST, {},
           "Header name exceeded maximum allowed size."};
       else
-        m_headers.back().name.push_back(c);
+        m_headers.back().name.push_back(tolower(c));
     }
     else if(c == ':')
       m_state = HEADER_VALUE;
