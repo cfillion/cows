@@ -13,6 +13,7 @@ enum HttpStatus
   HTTP_BAD_REQUEST = 400,
   HTTP_NOT_FOUND = 404,
   HTTP_URI_TOO_LONG = 414,
+  HTTP_UPGRADE_REQUIRED = 426,
 
   HTTP_INTERNAL_ERROR = 500,
   HTTP_NOT_IMPLEMENTED = 501,
@@ -56,6 +57,7 @@ public:
   }
 
   std::string encode_reply() const;
+  std::string header_value(const std::string &key) const;
 
 private:
   enum State

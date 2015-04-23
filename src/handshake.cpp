@@ -1,7 +1,9 @@
 #include "handshake.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <botan/filters.h>
 #include <map>
 #include <sstream>
 #include <unistd.h>
@@ -20,15 +22,19 @@ const std::map<HttpStatus, std::string> STATUS_STRINGS {
   {HTTP_BAD_REQUEST, "Bad Request"},
   {HTTP_NOT_FOUND, "Not Found"},
   {HTTP_URI_TOO_LONG, "URI Too Long"},
+  {HTTP_UPGRADE_REQUIRED, "Upgrade Required"},
 
   {HTTP_INTERNAL_ERROR, "Internal Error"},
   {HTTP_NOT_IMPLEMENTED, "Not Implemented"},
 };
 
+const std::string MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
 using namespace boost;
+using namespace Botan;
 
 Handshake::Handshake()
-  : m_state(METHOD), m_reply {HTTP_CONTINUE, {}, ""}
+  : m_state(METHOD), m_reply{HTTP_CONTINUE, {}, ""}
 {
 }
 
@@ -137,7 +143,10 @@ void Handshake::consume(const char c)
 
     break;
   case BODY:
-    m_reply = {HTTP_INTERNAL_ERROR, {}, "Something whent wrong server-side."};
+    // We should not be asked to parse anything once the handshake is complete,
+    // which should be the case since we already finished reading the header.
+
+    m_reply = {HTTP_INTERNAL_ERROR, {}, "Something went wrong server-side."};
     break;
   };
 }
@@ -152,12 +161,45 @@ bool Handshake::expect(const bool test, const State pass)
   return test;
 }
 
+std::string Handshake::header_value(const std::string &key) const
+{
+  for(const HttpHeader &h : m_headers) {
+    if(h.name == key)
+      return h.value;
+  }
+
+  return "";
+}
+
 void Handshake::finalize()
 {
-  for(HttpHeader &h : m_headers)
-    LOG_DEBUG(format("%s = %s") % h.name % h.value);
+  const std::string protocol = header_value("sec-websocket-protocol");
 
-  m_reply = {HTTP_SWITCH_PROTOCOLS, {}, ""};
+  bool is_ws = true;
+  is_ws = is_ws && iequals(header_value("upgrade"), "websocket");
+  is_ws = is_ws && iequals(header_value("connection"), "upgrade");
+
+  if(!is_ws) {
+    m_reply = {HTTP_UPGRADE_REQUIRED,
+      {{"Upgrade", "websocket"}}, "Hello World"};
+
+    return;
+  }
+
+  Pipe pipe(new Chain(
+    new Hash_Filter("SHA-1"),
+    new Base64_Encoder
+  ));
+
+  pipe.process_msg(header_value("sec-websocket-key") + MAGIC_STRING);
+  const std::string accept_key = pipe.read_all_as_string(0);
+
+  m_reply = {HTTP_SWITCH_PROTOCOLS, {
+    {"Upgrade", "websocket"},
+    {"Connection", "Upgrade"},
+    {"Sec-WebSocket-Accept", accept_key},
+    {"Sec-WebSocket-Protocol", protocol == "cows1" ? protocol : "null"},
+  }, ""};
 }
 
 std::string Handshake::encode_reply() const

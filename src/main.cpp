@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
+#include <botan/init.h>
 #include <iostream>
 #include <sys/ioctl.h>
 
@@ -39,6 +40,8 @@ bool setup_logging(const string &file, const string &level)
 
 int main(int argc, char *argv[])
 {
+  Botan::LibraryInitializer botan_init;
+
   namespace po = boost::program_options;
 
   const string caption = "Chat on Web Sockets (COWS) v0.0.1";
