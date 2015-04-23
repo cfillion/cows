@@ -11,7 +11,7 @@ using namespace std;
 
 LOG_MODULE("main");
 
-bool setupLogging(const string &file, const string &level)
+bool setup_logging(const string &file, const string &level)
 {
   string level_lc = level;
   transform(level_lc.begin(), level_lc.end(), level_lc.begin(), ::tolower);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
   const string log_file = vm["logfile"].as<string>();
   const string log_level = vm["loglevel"].as<string>();
 
-  if(!setupLogging(log_file, log_level))
+  if(!setup_logging(log_file, log_level))
     return EXIT_FAILURE;
 
   const string host = vm["bind"].as<string>();

@@ -37,7 +37,36 @@ Peer::~Peer()
 
 void Peer::start()
 {
+  read();
+}
+
+void Peer::kill()
+{
   on_disconnect(shared_from_this());
+}
+
+void Peer::read()
+{
+  m_socket.async_read_some(asio::buffer(m_buffer),
+    bind(&Peer::receive, this, _1, _2));
+}
+
+void Peer::receive(system::error_code ec, std::size_t bytes)
+{
+  if(ec)
+    return kill();
+
+  tribool result = m_handshake.parse(m_buffer.begin(), m_buffer.begin() + bytes);
+  if(result)
+    ;
+  else if(!result)
+    kill();
+  else
+    read();
+}
+
+void Peer::write()
+{
 }
 
 // void Peer::send(const CommandList &commands)

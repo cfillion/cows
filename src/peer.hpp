@@ -5,6 +5,7 @@
 #include <boost/signals2.hpp>
 
 // #include "command.h"
+#include "handshake.hpp"
 
 // class Room;
 class Server;
@@ -18,12 +19,13 @@ public:
   Peer(boost::asio::ip::tcp::socket socket, Server *server);
   ~Peer();
 
-  void start();
-
   const std::string &uuid() const { return m_uuid; }
   std::string ip_address() const { return m_ip_address; }
   int remote_port() const { return m_remote_port; }
   Server *server() const { return m_server; }
+
+  void start();
+  void kill();
 
 //   void send(const CommandList &commands);
 //   void send(const Command &commands);
@@ -33,12 +35,21 @@ public:
   boost::signals2::signal<void(PeerPtr)> on_disconnect;
 
 private:
+  void read();
+  void receive(boost::system::error_code ec, std::size_t bytes);
+
+  void write();
+
   boost::asio::ip::tcp::socket m_socket;
   Server *m_server;
 
   std::string m_uuid;
   std::string m_ip_address;
   int m_remote_port;
+
+  std::array<char, 8192> m_buffer;
+
+  Handshake m_handshake;
 
 // private Q_SLOTS:
 //   void messageReceived(const QString &message);
