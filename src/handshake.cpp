@@ -24,7 +24,7 @@ const std::map<HttpStatus, std::string> STATUS_STRINGS {
   {HTTP_URI_TOO_LONG, "URI Too Long"},
   {HTTP_UPGRADE_REQUIRED, "Upgrade Required"},
 
-  {HTTP_INTERNAL_ERROR, "Internal Error"},
+  {HTTP_INTERNAL_ERROR, "Internal Server Error"},
   {HTTP_NOT_IMPLEMENTED, "Not Implemented"},
 };
 
