@@ -1,4 +1,4 @@
-#include <algorithm>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <botan/init.h>
@@ -12,31 +12,13 @@ using namespace std;
 
 LOG_MODULE("main");
 
-bool setup_logging(const string &file, const string &level)
-{
-  string level_lc = level;
-  transform(level_lc.begin(), level_lc.end(), level_lc.begin(), ::tolower);
-
-  map<string, Logger::Level> levels = {
-    {"debug", Logger::DEBUG},
-    {"info", Logger::INFO},
-    {"warning", Logger::WARNING},
-    {"error", Logger::ERROR},
-    {"fatal", Logger::FATAL},
-  };
-
-  if(!levels.count(level_lc)) {
-    Logger::open();
-
-    LOG_FATAL(boost::format("invalid log level: %s") % level);
-
-    return false;
-  }
-
-  Logger::open(file, levels[level_lc]);
-
-  return true;
-}
+const map<string, Logger::Level> LOG_LEVELS = {
+  {"debug", Logger::DEBUG},
+  {"info", Logger::INFO},
+  {"warning", Logger::WARNING},
+  {"error", Logger::ERROR},
+  {"fatal", Logger::FATAL},
+};
 
 int main(int argc, char *argv[])
 {
@@ -79,7 +61,7 @@ int main(int argc, char *argv[])
     po::notify(vm);
   }
   catch(po::error &err) {
-    Logger::open();
+    Logger temp_logger;
 
     LOG_FATAL(err.what());
 
@@ -97,10 +79,19 @@ int main(int argc, char *argv[])
   }
 
   const string log_file = vm["logfile"].as<string>();
-  const string log_level = vm["loglevel"].as<string>();
+  string log_level = vm["loglevel"].as<string>();
+  boost::to_lower(log_level);
 
-  if(!setup_logging(log_file, log_level))
+  if(!LOG_LEVELS.count(log_level)) {
+    Logger temp_logger;
+
+    LOG_FATAL(boost::format("invalid log level: %s")
+      % vm["loglevel"].as<string>());
+
     return EXIT_FAILURE;
+  }
+
+  Logger logger(log_file, LOG_LEVELS.at(log_level));
 
   const string host = vm["bind"].as<string>();
   const string port = vm["port"].as<string>();

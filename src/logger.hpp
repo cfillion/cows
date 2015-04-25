@@ -1,8 +1,9 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef LOGGER_HPP
+#define LOGGER_HPP
 
 #include <boost/format/format_fwd.hpp>
 #include <fstream>
+#include <stack>
 
 class Logger
 {
@@ -16,13 +17,10 @@ public:
     FATAL,
   };
 
-  static void open(const std::string &log_file = "-",
-    const Level log_level = INFO);
-  static void open(Logger *replacement);
+  static Logger *instance() { return s_stack.top(); }
 
-  static Logger *instance();
-
-  Logger(const std::string &log_file, const Level log_level);
+  Logger(const std::string &log_file = "-", const Level log_level = INFO);
+  ~Logger();
 
   void log(const Level level,
     const std::string &module, const std::string &message);
@@ -30,9 +28,9 @@ public:
     const std::string &module, const boost::format &format);
 
 private:
-  std::string level2string(const Level level) const;
+  std::string level_prefix(const Level level) const;
 
-  static Logger *s_instance;
+  static std::stack<Logger *> s_stack;
 
   std::ofstream m_file;
   int m_level;

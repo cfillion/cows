@@ -2,46 +2,38 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
+#include <cassert>
 #include <ctime>
 #include <iostream>
 
+#include "logging.hpp"
+
 using namespace std;
 
-Logger *Logger::s_instance = 0;
+LOG_MODULE("logger");
 
-void Logger::open(const string &log_file, const Level log_level)
-{
-  Logger::open(new Logger(log_file, log_level));
-}
-
-void Logger::open(Logger *replacement)
-{
-  if(s_instance)
-    delete s_instance;
-
-  s_instance = replacement;
-}
-
-Logger *Logger::instance()
-{
-  return s_instance;
-}
+stack<Logger *> Logger::s_stack;
 
 Logger::Logger(const string &log_file, const Level log_level)
   : m_level(log_level)
 {
-  // The macros LOG_* can't be used here since s_instance isn't set yet.
+  s_stack.push(this);
 
   if(log_file != "-") {
     m_file.open(log_file, ofstream::trunc);
 
-    if(m_file.fail()) {
-      log(ERROR, "logger",
-        boost::format("can not open '%1%' for writing: %2%")
+    if(m_file.fail())
+      LOG_ERROR(boost::format("can not open '%1%' for writing: %2%")
         % log_file % strerror(errno)
       );
-    }
   }
+}
+
+Logger::~Logger()
+{
+  assert(s_stack.top() == this);
+
+  s_stack.pop();
 }
 
 void Logger::log(const Level level,
@@ -56,7 +48,7 @@ void Logger::log(const Level level,
 
   const string line = str(boost::format("[%s] (%s) %s: %s")
     % time
-    % level2string(level)
+    % level_prefix(level)
     % module
     % message
   );
@@ -71,7 +63,7 @@ void Logger::log(const Level level, const string &module,
   log(level, module, format.str());
 }
 
-string Logger::level2string(const Level level) const
+string Logger::level_prefix(const Level level) const
 {
   switch(level) {
   case DEBUG:
