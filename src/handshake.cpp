@@ -15,19 +15,6 @@ LOG_MODULE("handshake");
 const unsigned int MAX_LENGTH = getpagesize();
 const unsigned int MAX_HEADERS = 64;
 
-const std::map<HttpStatus, std::string> STATUS_STRINGS {
-  {HTTP_CONTINUE, "Continue"},
-  {HTTP_SWITCH_PROTOCOLS, "Switch Protocols"},
-
-  {HTTP_BAD_REQUEST, "Bad Request"},
-  {HTTP_NOT_FOUND, "Not Found"},
-  {HTTP_URI_TOO_LONG, "URI Too Long"},
-  {HTTP_UPGRADE_REQUIRED, "Upgrade Required"},
-
-  {HTTP_INTERNAL_ERROR, "Internal Server Error"},
-  {HTTP_NOT_IMPLEMENTED, "Not Implemented"},
-};
-
 const std::string MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 using namespace boost;
@@ -204,12 +191,10 @@ void Handshake::finalize()
 
 std::string Handshake::encode_reply() const
 {
-  std::string status_string = "Unknown";
-  if(STATUS_STRINGS.count(m_reply.status))
-    status_string = STATUS_STRINGS.at(m_reply.status);
+  const std::string status_desc = status_string(m_reply.status);
 
   LOG_DEBUG(format("status is %d %s \"%s\" at stage %d")
-    % m_reply.status % status_string % m_reply.body % m_state);
+    % m_reply.status % status_desc % m_reply.body % m_state);
 
   HttpReply reply = m_reply;
   reply.headers.insert(reply.headers.begin(), {
@@ -222,7 +207,7 @@ std::string Handshake::encode_reply() const
       "<html><head><title>%1% %2%</title></head>"
       "<body><h1>%1% %2%</h1><p>%3%</p><hr>"
       "<address>C.O.W.S Server</address></body></html>\r\n")
-      % m_reply.status % status_string
+      % m_reply.status % status_desc
       % m_reply.body
     );
 
@@ -232,7 +217,7 @@ std::string Handshake::encode_reply() const
   }
 
   std::ostringstream out;
-  out << format("HTTP/1.1 %d %s\r\n") % reply.status % status_string;
+  out << format("HTTP/1.1 %d %s\r\n") % reply.status % status_desc;
 
   for(HttpHeader &h : reply.headers)
     out << format("%s: %s\r\n") % h.name % h.value;
@@ -240,4 +225,23 @@ std::string Handshake::encode_reply() const
   out << "\r\n" << reply.body;
 
   return out.str();
+}
+
+std::string Handshake::status_string(const HttpStatus status) const
+{
+  switch(status) {
+  // 1xx
+  case HTTP_CONTINUE: return "Continue";
+  case HTTP_SWITCH_PROTOCOLS: return "Switch Protocols";
+
+  // 4xx
+  case HTTP_BAD_REQUEST: return "Bad Request";
+  case HTTP_NOT_FOUND: return "Not Found";
+  case HTTP_URI_TOO_LONG: return "URI Too Long";
+  case HTTP_UPGRADE_REQUIRED: return "Upgrade Required";
+
+  // 5xx
+  case HTTP_INTERNAL_ERROR: return "Internal Server Error";
+  case HTTP_NOT_IMPLEMENTED: return "Not Implemented";
+  }
 }
