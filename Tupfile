@@ -3,10 +3,10 @@ CXX = clang++
 CXXFLAGS = -Wall -Wextra -pipe
 CXXFLAGS += -fcolor-diagnostics
 CXXFLAGS += -g -O2 -std=c++11
-CXXFLAGS += `botan --cflags`
+CXXFLAGS += `botan config cflags`
 
 LDFLAGS = -lboost_program_options -lboost_system -lpthread
-LDFLAGS += `botan --libs`
+LDFLAGS += `botan config libs`
 
 ifeq (@(TUP_PLATFORM),macosx)
   LDFLAGS += -stdlib=libc++
