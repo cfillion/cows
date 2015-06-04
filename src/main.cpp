@@ -54,11 +54,11 @@ int main(int argc, char *argv[])
      "output version information and exit")
   ;
 
-  po::variables_map vm;
+  po::variables_map opts;
 
   try {
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
+    po::store(po::parse_command_line(argc, argv, desc), opts);
+    po::notify(opts);
   }
   catch(po::error &err) {
     Logger temp_logger;
@@ -68,33 +68,33 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (vm.count("help")) {
+  if(opts.count("help")) {
     cout << desc;
     return EXIT_SUCCESS;
   }
 
-  if(vm.count("version")) {
+  if(opts.count("version")) {
     cout << caption << endl;
     return EXIT_SUCCESS;
   }
 
-  const string log_file = vm["logfile"].as<string>();
-  string log_level = vm["loglevel"].as<string>();
+  const string log_file = opts["logfile"].as<string>();
+  string log_level = opts["loglevel"].as<string>();
   boost::to_lower(log_level);
 
   if(!LOG_LEVELS.count(log_level)) {
     Logger temp_logger;
 
     LOG_FATAL(boost::format("invalid log level: %s")
-      % vm["loglevel"].as<string>());
+      % opts["loglevel"].as<string>());
 
     return EXIT_FAILURE;
   }
 
   Logger logger(log_file, LOG_LEVELS.at(log_level));
 
-  const string host = vm["bind"].as<string>();
-  const string port = vm["port"].as<string>();
+  const string host = opts["bind"].as<string>();
+  const string port = opts["port"].as<string>();
 
   Server server;
   return server.run(host, port) ? EXIT_SUCCESS : EXIT_FAILURE;
