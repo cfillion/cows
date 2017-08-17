@@ -1,6 +1,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
+#include <fstream>
 #include <iostream>
 #include <sys/ioctl.h>
 
@@ -88,7 +89,11 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Logger logger(log_file, LOG_LEVELS.at(log_level));
+  Logger logger(LOG_LEVELS.at(log_level));
+
+  ofstream log_stream;
+  if(log_file != "-")
+    logger.open_file(log_file, &log_stream);
 
   const string &host = opts["bind"].as<string>();
   const string &port = opts["port"].as<string>();

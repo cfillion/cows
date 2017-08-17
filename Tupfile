@@ -1,5 +1,3 @@
-TARGET = bin/cows
-
 CC  = cc
 CXX = c++
 
@@ -19,14 +17,17 @@ endif
 
 UNITY = vendor/Unity
 
-: src/main.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: src/logger.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: src/server.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: src/peer.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: src/handshake.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: src/websocket.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: build/*.o |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |> $(TARGET)
+!build = |> $(CXX) $(CXXFLAGS) -c %f -o %o |>
+!link = |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |>
 
-: $(UNITY)/src/unity.c |> $(CC) $(CFLAGS) -c %f -o %o |> build/test/%B.o {unity}
-: foreach test/*.c |> ruby $(UNITY)/auto/generate_test_runner.rb %f %o test/%b |> build/test/%b {tests}
-: foreach {tests} | {unity} |> $(CXX) $(CFLAGS) -Isrc -I$(UNITY)/src %f test/%b build/test/unity.o -o %o |> bin/test/%B
+: src/main.cpp |> !build |> build/%B.o
+: src/logger.cpp |> !build |> build/%B.o
+: src/server.cpp |> !build |> build/%B.o
+: src/peer.cpp |> !build |> build/%B.o
+: src/handshake.cpp |> !build |> build/%B.o
+: src/websocket.cpp |> !build |> build/%B.o
+: build/*.o |> !link |> bin/cows
+
+: foreach test/*.cpp |> !build -Isrc -Ivendor |> build/test/%B.o
+: build/test/*.o | build/*.o |> zsh -c "setopt extended_glob; \
+  $(CXX) $(CXXFLAGS) %f build/(^main).o $(LDFLAGS) -o %o" |> bin/test

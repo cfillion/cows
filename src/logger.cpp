@@ -2,31 +2,22 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
-#include <cassert>
-#include <ctime>
-#include <iostream>
+#include <fstream>
 
 #include "logging.hpp"
 
+using namespace boost;
 using namespace std;
 
 LOG_MODULE("logger");
 
 stack<Logger *> Logger::s_stack;
 
-Logger::Logger(const string &log_file, const Level log_level)
-  : m_level(log_level)
+Logger::Logger(const Level level, ostream *stream)
+  : m_level(level), m_stream(stream)
 {
   s_stack.push(this);
 
-  if(log_file != "-") {
-    m_file.open(log_file, ofstream::trunc);
-
-    if(m_file.fail())
-      LOG_ERROR(boost::format("can not open '%1%' for writing: %2%")
-        % log_file % strerror(errno)
-      );
-  }
 }
 
 Logger::~Logger()
@@ -36,32 +27,42 @@ Logger::~Logger()
   s_stack.pop();
 }
 
+bool Logger::open_file(const string &fn, ofstream *stream)
+{
+  stream->open(fn, ofstream::trunc);
+
+  if(stream->good()) {
+    m_stream = stream;
+    return true;
+  }
+  else {
+    LOG_ERROR(format("cannot open '%1%' for writing: %2%")
+      % fn % strerror(errno));
+    return false;
+  }
+}
+
 void Logger::log(const Level level,
   const string &module, const string &message)
 {
   if(level < m_level)
     return;
 
-  const auto &time = boost::posix_time::microsec_clock::local_time();
-
-  const string line = str(boost::format("[%1%] (%2%%2%) %3%: %4%")
-    % time
+  *m_stream << str(format("[%1%] (%2%%2%) %3%: %4%")
+    % posix_time::microsec_clock::local_time()
     % prefix_for(level)
     % module
     % message
-  );
-
-  ostream *stream = m_file.is_open() ? &m_file : &cerr;
-  *stream << line << endl;
+  ) << endl;
 }
 
 void Logger::log(const Level level, const string &module,
-  const boost::format &format)
+  const format &format)
 {
   log(level, module, format.str());
 }
 
-char Logger::prefix_for(const Level level) const
+char Logger::prefix_for(const Level level)
 {
   switch(level) {
   case DEBUG:
