@@ -42,8 +42,12 @@ bool Logger::open_file(const string &fn, ofstream *stream)
   }
 }
 
-void Logger::log(const Level level,
-  const string &module, const string &message)
+void Logger::log(const Level level, const char *module, const format &format)
+{
+  log(level, module, format.str().c_str());
+}
+
+void Logger::log(const Level level, const char *module, const char *message)
 {
   if(level < m_level)
     return;
@@ -54,12 +58,6 @@ void Logger::log(const Level level,
     % module
     % message
   ) << endl;
-}
-
-void Logger::log(const Level level, const string &module,
-  const format &format)
-{
-  log(level, module, format.str());
 }
 
 char Logger::prefix_for(const Level level)

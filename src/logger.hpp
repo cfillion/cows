@@ -23,8 +23,8 @@ public:
   std::ostream *stream() const { return m_stream; }
   bool open_file(const std::string &fn, std::ofstream *);
 
-  void log(Level level, const std::string &module, const std::string &message);
-  void log(Level level, const std::string &module, const boost::format &format);
+  void log(Level level, const char *module, const char *message);
+  void log(Level level, const char *module, const boost::format &format);
 
 private:
   static char prefix_for(Level level);
