@@ -1,20 +1,32 @@
-CXX = clang++
+TARGET = bin/cows
 
-CXXFLAGS = -Wall -Wextra -pipe
-CXXFLAGS += -fcolor-diagnostics
-CXXFLAGS += -g -O2 -std=c++11
-CXXFLAGS += `botan config cflags`
+CC  = cc
+CXX = c++
 
-LDFLAGS = -lboost_program_options -lboost_system -lpthread
+CFLAGS := -Wall -Wextra -Werror
+CFLAGS += -fdiagnostics-color -fstack-protector-strong -fvisibility=hidden
+CFLAGS += -pipe -fPIC -O2
+CFLAGS += `botan config cflags`
+
+CXXFLAGS := $(CFLAGS) -std=c++14
+
+LDFLAGS := -lboost_program_options -lboost_system -lpthread
 LDFLAGS += `botan config libs`
 
 ifeq (@(TUP_PLATFORM),macosx)
   LDFLAGS += -stdlib=libc++
 endif
 
+UNITY = vendor/Unity
+
 : src/main.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/logger.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/server.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/peer.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
 : src/handshake.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: build/*.o |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |> cows
+: src/websocket.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
+: build/*.o |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |> $(TARGET)
+
+: $(UNITY)/src/unity.c |> $(CC) $(CFLAGS) -c %f -o %o |> build/test/%B.o {unity}
+: foreach test/*.c |> ruby $(UNITY)/auto/generate_test_runner.rb %f %o test/%b |> build/test/%b {tests}
+: foreach {tests} | {unity} |> $(CXX) $(CFLAGS) -Isrc -I$(UNITY)/src %f test/%b build/test/unity.o -o %o |> bin/test/%B

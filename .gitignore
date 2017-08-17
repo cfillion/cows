@@ -1,4 +1,5 @@
-.tup/
-build/
-
-cows
+/.tup/
+/bin/
+/build/
+/vendor/*
+!/vendor/.gitkeep

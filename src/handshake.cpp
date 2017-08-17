@@ -12,13 +12,27 @@
 
 LOG_MODULE("handshake");
 
-const unsigned int MAX_LENGTH = getpagesize();
-const unsigned int MAX_HEADERS = 64;
-
-const std::string MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
 using namespace boost;
-using namespace Botan;
+using namespace std;
+
+static const unsigned int MAX_LENGTH = getpagesize();
+static const unsigned int MAX_HEADERS = 64;
+
+static const string MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+static bool iscr(const char c) { return c == '\r'; }
+static bool islf(const char c) { return c == '\n'; }
+static bool istchar(const char c)
+{
+  switch(c) {
+  case '!': case '#': case '$': case '%': case '&': case '\'': case '*':
+  case '+': case '-': case '.': case '^': case '_': case '`': case '|':
+  case '~':
+    return true;
+  }
+
+  return isalnum(c);
+}
 
 Handshake::Handshake()
   : m_state(METHOD), m_reply{HTTP_CONTINUE, {}, ""}
@@ -148,7 +162,7 @@ bool Handshake::expect(const bool test, const State pass)
   return test;
 }
 
-std::string Handshake::header_value(const std::string &key) const
+string Handshake::header_value(const string &key) const
 {
   for(const HttpHeader &h : m_headers) {
     if(h.name == key)
@@ -160,7 +174,7 @@ std::string Handshake::header_value(const std::string &key) const
 
 void Handshake::finalize()
 {
-  const std::string protocol = header_value("sec-websocket-protocol");
+  const string protocol = header_value("sec-websocket-protocol");
 
   bool is_ws = true;
   is_ws = is_ws && iequals(header_value("upgrade"), "websocket");
@@ -173,13 +187,13 @@ void Handshake::finalize()
     return;
   }
 
-  Pipe pipe(new Chain(
-    new Hash_Filter("SHA-1"),
-    new Base64_Encoder
+  Botan::Pipe pipe(new Botan::Chain(
+    new Botan::Hash_Filter("SHA-1"),
+    new Botan::Base64_Encoder
   ));
 
   pipe.process_msg(header_value("sec-websocket-key") + MAGIC_STRING);
-  const std::string accept_key = pipe.read_all_as_string(0);
+  const string accept_key = pipe.read_all_as_string(0);
 
   m_reply = {HTTP_SWITCH_PROTOCOLS, {
     {"Upgrade", "websocket"},
@@ -189,9 +203,9 @@ void Handshake::finalize()
   }, ""};
 }
 
-std::string Handshake::encode_reply() const
+string Handshake::encode_reply() const
 {
-  const std::string status_desc = status_string(m_reply.status);
+  const string status_desc = status_string(m_reply.status);
 
   LOG_DEBUG(format("status is %d %s \"%s\" at stage %d")
     % m_reply.status % status_desc % m_reply.body % m_state);
@@ -212,11 +226,11 @@ std::string Handshake::encode_reply() const
     );
 
     reply.headers.insert(reply.headers.begin(), {
-      {"Content-Length", std::to_string(reply.body.size())}
+      {"Content-Length", to_string(reply.body.size())}
     });
   }
 
-  std::ostringstream out;
+  ostringstream out;
   out << format("HTTP/1.1 %d %s\r\n") % reply.status % status_desc;
 
   for(HttpHeader &h : reply.headers)
@@ -227,7 +241,7 @@ std::string Handshake::encode_reply() const
   return out.str();
 }
 
-std::string Handshake::status_string(const HttpStatus status) const
+string Handshake::status_string(const HttpStatus status) const
 {
   switch(status) {
   // 1xx

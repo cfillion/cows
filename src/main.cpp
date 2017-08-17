@@ -1,7 +1,6 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
-#include <botan/init.h>
 #include <iostream>
 #include <sys/ioctl.h>
 
@@ -12,7 +11,7 @@ using namespace std;
 
 LOG_MODULE("main");
 
-const map<string, Logger::Level> LOG_LEVELS = {
+static const map<string, Logger::Level> LOG_LEVELS = {
   {"debug", Logger::DEBUG},
   {"info", Logger::INFO},
   {"warning", Logger::WARNING},
@@ -20,18 +19,16 @@ const map<string, Logger::Level> LOG_LEVELS = {
   {"fatal", Logger::FATAL},
 };
 
+static const string CAPTION = "Chat on Web Sockets (COWS) v0.0.1";
+
 int main(int argc, char *argv[])
 {
-  Botan::LibraryInitializer botan_init;
-
   namespace po = boost::program_options;
-
-  const string caption = "Chat on Web Sockets (COWS) v0.0.1";
 
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-  po::options_description desc(caption, w.ws_col);
+  po::options_description desc(CAPTION, w.ws_col);
   desc.add_options()
     ("bind,b", po::value<string>()
      ->value_name("ADDRESS")->default_value("0.0.0.0"),
@@ -74,11 +71,11 @@ int main(int argc, char *argv[])
   }
 
   if(opts.count("version")) {
-    cout << caption << endl;
+    cout << CAPTION << endl;
     return EXIT_SUCCESS;
   }
 
-  const string log_file = opts["logfile"].as<string>();
+  const string &log_file = opts["logfile"].as<string>();
   string log_level = opts["loglevel"].as<string>();
   boost::to_lower(log_level);
 
@@ -93,8 +90,8 @@ int main(int argc, char *argv[])
 
   Logger logger(log_file, LOG_LEVELS.at(log_level));
 
-  const string host = opts["bind"].as<string>();
-  const string port = opts["port"].as<string>();
+  const string &host = opts["bind"].as<string>();
+  const string &port = opts["port"].as<string>();
 
   Server server;
   return server.run(host, port) ? EXIT_SUCCESS : EXIT_FAILURE;

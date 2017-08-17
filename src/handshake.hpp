@@ -5,10 +5,8 @@
 #include <string>
 #include <vector>
 
-class Handshake
-{
-  enum HttpStatus
-  {
+class Handshake {
+  enum HttpStatus {
     HTTP_CONTINUE = 100,
     HTTP_SWITCH_PROTOCOLS = 101,
 
@@ -21,21 +19,18 @@ class Handshake
     HTTP_NOT_IMPLEMENTED = 501,
   };
 
-  struct HttpHeader
-  {
+  struct HttpHeader {
     std::string name;
     std::string value;
   };
 
-  struct HttpReply
-  {
+  struct HttpReply {
     HttpStatus status;
     std::vector<HttpHeader> headers;
     std::string body;
   };
 
-  enum State
-  {
+  enum State {
     METHOD,
     TARGET,
     VERSION_H,
@@ -82,20 +77,6 @@ public:
 private:
   void consume(const char c);
   void finalize();
-
-  bool iscr(const char c) { return c == '\r'; }
-  bool islf(const char c) { return c == '\n'; }
-  bool istchar(const char c)
-  {
-    switch(c) {
-    case '!': case '#': case '$': case '%': case '&': case '\'': case '*':
-    case '+': case '-': case '.': case '^': case '_': case '`': case '|':
-    case '~':
-      return true;
-    }
-
-    return isalnum(c);
-  }
 
   bool expect(const bool test, const State pass);
   std::string status_string(const HttpStatus status) const;

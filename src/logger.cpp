@@ -39,16 +39,14 @@ Logger::~Logger()
 void Logger::log(const Level level,
   const string &module, const string &message)
 {
-  namespace pt = boost::posix_time;
-
   if(level < m_level)
     return;
 
-  const pt::ptime time = pt::microsec_clock::local_time();
+  const auto &time = boost::posix_time::microsec_clock::local_time();
 
-  const string line = str(boost::format("[%s] (%s) %s: %s")
+  const string line = str(boost::format("[%1%] (%2%%2%) %3%: %4%")
     % time
-    % level_prefix(level)
+    % prefix_for(level)
     % module
     % message
   );
@@ -63,18 +61,18 @@ void Logger::log(const Level level, const string &module,
   log(level, module, format.str());
 }
 
-string Logger::level_prefix(const Level level) const
+char Logger::prefix_for(const Level level) const
 {
   switch(level) {
   case DEBUG:
-    return "DD";
+    return 'D';
   case INFO:
-    return "II";
+    return 'I';
   case WARNING:
-    return "WW";
+    return 'W';
   case ERROR:
-    return "EE";
+    return 'E';
   case FATAL:
-    return "FF";
+    return 'F';
   }
 }

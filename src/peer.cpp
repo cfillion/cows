@@ -67,8 +67,7 @@ void Peer::shake_hands(system::error_code ec, std::size_t bytes)
     return read();
 
   asio::async_write(m_socket, asio::buffer(m_handshake.encode_reply()),
-  [&status, this](system::error_code ec, std::size_t)
-  {
+  [&status, this] (system::error_code ec, std::size_t) {
     if(!status || ec)
       kill();
     else {

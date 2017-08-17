@@ -13,8 +13,7 @@ class Peer;
 
 typedef std::shared_ptr<Peer> PeerPtr;
 
-class Peer : public std::enable_shared_from_this<Peer>
-{
+class Peer : public std::enable_shared_from_this<Peer> {
 public:
   Peer(boost::asio::ip::tcp::socket socket, Server *server);
 
@@ -34,8 +33,7 @@ public:
   boost::signals2::signal<void(PeerPtr)> on_disconnect;
 
 private:
-  enum SocketState
-  {
+  enum SocketState {
     Handshake,
     DataTransfer,
   };

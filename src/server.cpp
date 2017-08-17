@@ -29,17 +29,6 @@ bool Server::run(const string &host, const string &port)
     const tcp::resolver::query query(host, port);
     const tcp::endpoint endpoint = *resolver.resolve(query);
     m_acceptor = tcp::acceptor(m_io, endpoint);
-
-    accept_client();
-
-    // endpoint doesn't know the effective port if the OS assigned a random one
-    // however m_acceptor.local_endpoint() does
-
-    LOG_INFO(
-      format("initialization completed. accepting connections on ws://%s:%d/")
-      % m_acceptor.local_endpoint().address()
-      % m_acceptor.local_endpoint().port()
-    );
   }
   catch(const system::system_error &err) {
     LOG_FATAL(format("unable to listen on %s:%s - %s")
@@ -49,6 +38,17 @@ bool Server::run(const string &host, const string &port)
 
     return false;
   }
+
+  accept_client();
+
+  // endpoint doesn't know the effective port if the OS assigned a random one
+  // however m_acceptor.local_endpoint() does
+
+  LOG_INFO(
+    format("accepting connections on ws://%s:%d/")
+    % m_acceptor.local_endpoint().address()
+    % m_acceptor.local_endpoint().port()
+  );
 
   m_io.run();
 
@@ -62,8 +62,7 @@ void Server::stop()
 
 void Server::accept_client()
 {
-  m_acceptor.async_accept(m_next_socket, [this](system::error_code ec)
-  {
+  m_acceptor.async_accept(m_next_socket, [this] (const system::error_code ec) {
     if(!ec)
       create_peer();
 
